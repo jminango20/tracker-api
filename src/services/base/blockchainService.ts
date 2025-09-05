@@ -54,6 +54,53 @@ export abstract class BlockchainService {
             if (error.message.includes('rejected')) {
                 return { type: 'TRANSACTION_REJECTED', message: 'Transação rejeitada pelo usuário' };
             }
+
+            // Erros do AccessChannelManager por signature
+            if (error.message.includes('0x45c908fa')) {
+                return { type: 'CHANNEL_ALREADY_EXISTS', message: 'Canal já existe com esse nome' };
+            }
+            if (error.message.includes('0x33344045')) {
+                return { type: 'CHANNEL_DOES_NOT_EXIST', message: 'Canal não existe' };
+            }
+            if (error.message.includes('0x2e54ecf4')) {
+                return { type: 'CHANNEL_ALREADY_ACTIVE', message: 'Canal já está ativo' };
+            }
+            if (error.message.includes('0x13b8c48c')) {
+                return { type: 'CHANNEL_ALREADY_DEACTIVATED', message: 'Canal já está desativado' };
+            }
+            if (error.message.includes('0xadf09e60')) {
+                return { type: 'CHANNEL_NOT_ACTIVE', message: 'Canal não está ativo' };
+            }
+            if (error.message.includes('0xa0da9c8c')) {
+                return { type: 'CREATOR_CANNOT_BE_MEMBER', message: 'Criador não pode ser membro do próprio canal' };
+            }
+            if (error.message.includes('0x7c72c4b8')) {
+                return { type: 'MEMBER_ALREADY_IN_CHANNEL', message: 'Membro já está no canal' };
+            }
+            if (error.message.includes('0x2b066d73')) {
+                return { type: 'MEMBER_NOT_IN_CHANNEL', message: 'Membro não está no canal' };
+            }
+            if (error.message.includes('0x6c7a64a9')) {
+                return { type: 'CHANNEL_MEMBER_LIMIT_EXCEEDED', message: 'Limite de membros do canal excedido' };
+            }
+            if (error.message.includes('0x1f2a2005')) {
+                return { type: 'EMPTY_MEMBER_ARRAY', message: 'Array de membros não pode estar vazio' };
+            }
+            if (error.message.includes('0x3ec6f93e')) {
+                return { type: 'BATCH_SIZE_EXCEEDED', message: 'Tamanho do lote excedido' };
+            }
+            if (error.message.includes('0x38e4b7aa')) {
+                return { type: 'INVALID_PAGE_NUMBER', message: 'Número da página inválido' };
+            }
+            if (error.message.includes('0x6f15cc97')) {
+                return { type: 'INVALID_PAGE_SIZE', message: 'Tamanho da página inválido' };
+            }
+            if (error.message.includes('0xe6c4247b')) {
+                return { type: 'INVALID_ADDRESS_ERROR', message: 'Endereço inválido fornecido' };
+            }
+            if (error.message.includes('0xe2517d3f')) {
+                return { type: 'ACCESS_CONTROL_INVALID_ACCOUNT', message: 'Carteira inválida' };
+            }
         }
 
         return { 

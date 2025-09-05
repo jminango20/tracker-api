@@ -1,5 +1,6 @@
 import express from 'express';
 import contractRoutes from './routes/addressDiscoveryRoutes';
+import accessChannelRoutes from './routes/accessChannelManagerRoutes';
 import { config } from './config/app';
 import { checkConnection } from './config/blockchain';
 
@@ -15,7 +16,11 @@ app.get('/', (req, res) => {
     });
 });
 
+// Rotas de contratos usando AddressDiscovery
 app.use('/addressDiscovery', contractRoutes);
+
+// Rotas de canais de acesso
+app.use('/accessChannel', accessChannelRoutes);
 
 async function startServer() {
   try {
