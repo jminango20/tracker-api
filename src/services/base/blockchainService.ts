@@ -68,16 +68,13 @@ export abstract class BlockchainService {
             if (error.message.includes('0x13b8c48c')) {
                 return { type: 'CHANNEL_ALREADY_DEACTIVATED', message: 'Canal já está desativado' };
             }
-            if (error.message.includes('0xadf09e60')) {
+            if (error.message.includes('0x357f102a')) {
                 return { type: 'CHANNEL_NOT_ACTIVE', message: 'Canal não está ativo' };
             }
-            if (error.message.includes('0xa0da9c8c')) {
-                return { type: 'CREATOR_CANNOT_BE_MEMBER', message: 'Criador não pode ser membro do próprio canal' };
-            }
-            if (error.message.includes('0x7c72c4b8')) {
+            if (error.message.includes('0xf112a7ea')) {
                 return { type: 'MEMBER_ALREADY_IN_CHANNEL', message: 'Membro já está no canal' };
             }
-            if (error.message.includes('0x2b066d73')) {
+            if (error.message.includes('0x971bac53')) {
                 return { type: 'MEMBER_NOT_IN_CHANNEL', message: 'Membro não está no canal' };
             }
             if (error.message.includes('0x6c7a64a9')) {
@@ -99,12 +96,12 @@ export abstract class BlockchainService {
                 return { type: 'INVALID_ADDRESS_ERROR', message: 'Endereço inválido fornecido' };
             }
             if (error.message.includes('0xe2517d3f')) {
-                return { type: 'ACCESS_CONTROL_INVALID_ACCOUNT', message: 'Carteira inválida' };
+                return { type: 'ACCESS_CONTROL_INVALID_ACCOUNT', message: 'Carteira inválida para executar essa transação' };
             }
         }
 
         return { 
-            type: 'UNKNOWN_ERROR', 
+            type: 'BLOCKCHAIN_ERROR', 
             message: `Erro em ${operation}: ${error instanceof Error ? error.message : error}` 
         };
     }

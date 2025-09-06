@@ -52,4 +52,61 @@ export class ContractValidators {
 
         return { isValid: true };
     }
+
+    static validateAddressArray(addresses: any) {
+        if (!Array.isArray(addresses)) {
+            return {
+                isValid: false,
+                error: 'Lista de endereços deve ser um array'
+            };
+        }
+
+        if (addresses.length === 0) {
+            return {
+                isValid: false,
+                error: 'Lista de endereços não pode estar vazia'
+            };
+        }
+
+        if (addresses.length > 50) {
+            return {
+                isValid: false,
+                error: 'Máximo de 50 endereços por operação'
+            };
+        }
+
+        for (let i = 0; i < addresses.length; i++) {
+            const addressValidation = this.validateAddress(addresses[i]);
+            if (!addressValidation.isValid) {
+                return {
+                    isValid: false,
+                    error: `Endereço na posição ${i + 1} é inválido: ${addresses[i]}`
+                };
+            }
+        }
+
+        return { isValid: true };
+    }
+
+    static validatePagination(page: any, pageSize: any) {
+        if (!page || isNaN(page) || parseInt(page) < 1) {
+            return {
+                isValid: false,
+                error: 'Página deve ser um número maior que 0'
+            };
+        }
+
+        if (!pageSize || isNaN(pageSize) || parseInt(pageSize) < 1 || parseInt(pageSize) > 100) {
+            return {
+                isValid: false,
+                error: 'Tamanho da página deve ser entre 1 e 100'
+            };
+        }
+
+        return { 
+            isValid: true,
+            page: parseInt(page),
+            pageSize: parseInt(pageSize)
+        };
+    }
 }
