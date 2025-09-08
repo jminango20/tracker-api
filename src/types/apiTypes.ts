@@ -55,3 +55,41 @@ export interface ChannelsList {
     page: number;
     pageSize: number;
 }
+
+/*
+SCHEMA Interfaces
+*/
+export enum SchemaStatus {
+    ACTIVE = 0,
+    DEPRECATED = 1,
+    INACTIVE = 2
+}
+
+// Interfaces para o SchemaRegistry
+export interface SchemaInput {
+    id: string;
+    name: string;
+    dataHash: string;
+    channelName: string;
+    description: string;
+}
+
+export interface SchemaUpdateInput {
+    id: string;
+    newDataHash: string;
+    channelName: string;
+    description: string;
+}
+
+export interface Schema {
+    id: string;
+    name: string;
+    version: number;
+    dataHash: string;
+    owner: string;
+    channelName: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    description: string;
+}

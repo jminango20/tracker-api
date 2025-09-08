@@ -74,7 +74,7 @@ export abstract class BlockchainService {
             if (error.message.includes('0xf112a7ea')) {
                 return { type: 'MEMBER_ALREADY_IN_CHANNEL', message: 'Membro já está no canal' };
             }
-            if (error.message.includes('0x971bac53')) {
+            if (error.message.includes('0x75f30fdd')) {
                 return { type: 'MEMBER_NOT_IN_CHANNEL', message: 'Membro não está no canal' };
             }
             if (error.message.includes('0x6c7a64a9')) {
@@ -97,6 +97,35 @@ export abstract class BlockchainService {
             }
             if (error.message.includes('0xe2517d3f')) {
                 return { type: 'ACCESS_CONTROL_INVALID_ACCOUNT', message: 'Carteira inválida para executar essa transação' };
+            }
+
+            // Erros do Schema
+            if (error.message.includes('SchemaAlreadyExistsCannotRecreate')) {
+                return { type: 'SCHEMA_ALREADY_EXISTS', message: 'Schema já existe e não pode ser recriado' };
+            }
+            if (error.message.includes('InvalidSchemaId')) {
+                return { type: 'INVALID_SCHEMA_ID', message: 'ID do schema é inválido' };
+            }
+            if (error.message.includes('InvalidSchemaName')) {
+                return { type: 'INVALID_SCHEMA_NAME', message: 'Nome do schema é inválido' };
+            }
+            if (error.message.includes('DescriptionTooLong')) {
+                return { type: 'DESCRIPTION_TOO_LONG', message: 'Descrição muito longa' };
+            }
+            if (error.message.includes('SchemaNotFoundInChannel')) {
+                return { type: 'SCHEMA_NOT_FOUND', message: 'Schema não encontrado no canal' };
+            }
+            if (error.message.includes('SchemaVersionNotFoundInChannel')) {
+                return { type: 'SCHEMA_VERSION_NOT_FOUND', message: 'Versão do schema não encontrada' };
+            }
+            if (error.message.includes('SchemaNotActive')) {
+                return { type: 'SCHEMA_NOT_ACTIVE', message: 'Schema não está ativo' };
+            }
+            if (error.message.includes('NoActiveSchemaVersion')) {
+                return { type: 'SCHEMA_NOT_ACTIVE', message: 'Schema não está ativo' };
+            }
+            if (error.message.includes('NotSchemaOwner')) {
+                return { type: 'NOT_SCHEMA_OWNER', message: 'Não é o proprietário do schema' };
             }
         }
 
