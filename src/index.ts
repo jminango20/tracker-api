@@ -2,6 +2,7 @@ import express from 'express';
 import contractRoutes from './routes/addressDiscoveryRoutes';
 import accessChannelRoutes from './routes/accessChannelManagerRoutes';
 import schemaRegistryRoutes from './routes/schemaRegistryRoutes';
+import processRegistryRoutes from './routes/processRegistryRoutes';
 import { config } from './config/app';
 import { checkConnection } from './config/blockchain';
 
@@ -23,8 +24,11 @@ app.use('/addressDiscovery', contractRoutes);
 // Rotas de canais de acesso
 app.use('/accessChannel', accessChannelRoutes);
 
-// Rotas de canais de acesso
+// Rotas de schemas
 app.use('/schemas', schemaRegistryRoutes);
+
+// Rotas de processos
+app.use('/process', processRegistryRoutes);
 
 async function startServer() {
   try {

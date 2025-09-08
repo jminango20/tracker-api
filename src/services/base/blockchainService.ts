@@ -130,6 +130,44 @@ export abstract class BlockchainService {
             if (error.message.includes('InvalidStatusTransition')) {
                 return { type: 'INVALID_STATUS_TRANSITION', message: 'Transição de status inválida' };
             }
+
+            // Erros de Process
+            if (error.message.includes('InvalidProcessId')) {
+                return { type: 'INVALID_PROCESS_ID', message: 'ID do processo é inválido' };
+            }
+            if (error.message.includes('InvalidNatureId')) {
+                return { type: 'INVALID_NATURE_ID', message: 'ID da natureza é inválido' };
+            }
+            if (error.message.includes('InvalidStageId')) {
+                return { type: 'INVALID_STAGE_ID', message: 'ID do estágio é inválido' };
+            }
+            if (error.message.includes('ProcessAlreadyExists')) {
+                return { type: 'PROCESS_ALREADY_EXISTS', message: 'Processo já existe com essas características' };
+            }
+            if (error.message.includes('ProcessNotFound')) {
+                return { type: 'PROCESS_NOT_FOUND', message: 'Processo não encontrado' };
+            }
+            if (error.message.includes('ProcessAlreadyInactive')) {
+                return { type: 'PROCESS_ALREADY_INACTIVE', message: 'Processo já está inativo' };
+            }
+            if (error.message.includes('NotProcessOwner')) {
+                return { type: 'NOT_PROCESS_OWNER', message: 'Não é o proprietário do processo' };
+            }
+            if (error.message.includes('SchemasRequiredForAction')) {
+                return { type: 'SCHEMAS_REQUIRED_FOR_ACTION', message: 'Schemas são obrigatórios para esta ação' };
+            }
+            if (error.message.includes('DuplicateSchemaInList')) {
+                return { type: 'DUPLICATE_SCHEMA_IN_LIST', message: 'Schema duplicado na lista' };
+            }
+            if (error.message.includes('SchemaNotActiveInChannel')) {
+                return { type: 'SCHEMA_NOT_ACTIVE_IN_CHANNEL', message: 'Schema não está ativo no canal' };
+            }
+            if (error.message.includes('SchemaNotFoundInChannel')) {
+                return { type: 'SCHEMA_NOT_FOUND_IN_CHANNEL', message: 'Schema não encontrado no canal' };
+            }
+            if (error.message.includes('InvalidProcessStatusTransition')) {
+                return { type: 'INVALID_PROCESS_STATUS_TRANSITION', message: 'Transição de status de processo inválida' };
+            }
         }
 
         return { 
