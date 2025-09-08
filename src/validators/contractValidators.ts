@@ -1,3 +1,9 @@
+import { 
+    SchemaInput,
+    SchemaStatusInput,  
+    SchemaUpdateInput 
+} from "../types/apiTypes";
+
 export class ContractValidators {
     static validateContractName(contractName: any) {
         if (!contractName || typeof contractName !== 'string') {
@@ -176,13 +182,6 @@ export class ContractValidators {
             };
         }
 
-        if (dataHash.length > 100) {
-            return {
-                isValid: false,
-                error: 'Hash dos dados não pode ter mais de 100 caracteres'
-            };
-        }
-        
         return { isValid: true };
     }
 
@@ -211,7 +210,7 @@ export class ContractValidators {
         return { isValid: true };
     }
 
-    static validateSchemaInput(schemaInput: any) {
+    static validateSchemaInput(schemaInput: SchemaInput) {
         if (!schemaInput || typeof schemaInput !== 'object') {
             return {
                 isValid: false,
@@ -219,7 +218,7 @@ export class ContractValidators {
             };
         }
 
-        const idValidation = this.validateSchemaId(schemaInput.id);
+        const idValidation = this.validateSchemaId(schemaInput.schemaId);
         if (!idValidation.isValid) {
             return idValidation;
         }
@@ -245,6 +244,123 @@ export class ContractValidators {
         const descriptionValidation = this.validateDescription(schemaInput.description);
         if (!descriptionValidation.isValid) {
             return descriptionValidation;
+        }
+
+        return { isValid: true };
+    }
+
+    static validateSchemaUpdate(schemaUpdate: SchemaUpdateInput) {
+        if (!schemaUpdate || typeof schemaUpdate !== 'object') {
+            return {
+                isValid: false,
+                error: 'Dados do schema são obrigatórios'
+            };
+        }
+
+        const idValidation = this.validateSchemaId(schemaUpdate.schemaId);
+        if (!idValidation.isValid) {
+            return idValidation;
+        }
+
+        const channelValidation = this.validateContractName(schemaUpdate.channelName);
+        if (!channelValidation.isValid) {
+            return {
+                isValid: false,
+                error: 'Nome do canal: ' + channelValidation.error
+            };
+        }
+
+        const newDataHashValidation = this.validateDataHash(schemaUpdate.newDataHash);
+        if (!newDataHashValidation.isValid) {
+            return newDataHashValidation;
+        }
+
+        const newDescriptionValidation = this.validateDescription(schemaUpdate.newDescription);
+        if (!newDescriptionValidation.isValid) {
+            return newDescriptionValidation;
+        }
+
+        return { isValid: true };
+    }
+
+    static validateSchemaStatusInput(schemaStatusInput: SchemaStatusInput) {
+        if (!schemaStatusInput || typeof schemaStatusInput !== 'object') {
+            return {
+                isValid: false,
+                error: 'Dados do schema são obrigatórios'
+            };
+        }
+
+        const idValidation = this.validateSchemaId(schemaStatusInput.schemaId);
+        if (!idValidation.isValid) {
+            return idValidation;
+        }
+
+        const versionValidation = this.validateVersion(schemaStatusInput.version);
+        if (!versionValidation.isValid) {
+            return versionValidation;
+        }
+
+        const channelValidation = this.validateContractName(schemaStatusInput.channelName);
+        if (!channelValidation.isValid) {
+            return {
+                isValid: false,
+                error: 'Nome do canal: ' + channelValidation.error
+            };
+        }
+
+        const statusValidation = this.validateSchemaStatus(schemaStatusInput.status);
+        if (!statusValidation.isValid) {
+            return statusValidation;
+        }
+
+        return { isValid: true };
+    }
+
+    static validateVersion(version: any) {
+        if (version === undefined || version === null) {
+            return {
+                isValid: false,
+                error: 'Versão é obrigatória'
+            };
+        }
+
+        const versionNum = Number(version);
+
+        if (isNaN(versionNum) || versionNum < 1) {
+            return {
+                isValid: false,
+                error: 'Versão deve ser um número maior que 0'
+            };
+        }
+
+        if (!Number.isInteger(versionNum)) {
+            return {
+                isValid: false,
+                error: 'Versão deve ser um número inteiro'
+            };
+        }
+
+        return { 
+            isValid: true,
+            version: versionNum
+        };
+    }
+
+    static validateSchemaStatus(status: any) {
+        if (!status || typeof status !== 'string') {
+            return {
+                isValid: false,
+                error: 'Status deve ser uma string'
+            };
+        }
+
+        const validStatuses = ['ACTIVE', 'DEPRECATED', 'INACTIVE'];
+        if (!validStatuses.includes(status.toUpperCase())) {
+            return {
+                isValid: false,
+                error: 'Status deve ser ACTIVE, DEPRECATED ou INACTIVE'
+            };
         }
 
         return { isValid: true };

@@ -127,6 +127,9 @@ export abstract class BlockchainService {
             if (error.message.includes('NotSchemaOwner')) {
                 return { type: 'NOT_SCHEMA_OWNER', message: 'Não é o proprietário do schema' };
             }
+            if (error.message.includes('InvalidStatusTransition')) {
+                return { type: 'INVALID_STATUS_TRANSITION', message: 'Transição de status inválida' };
+            }
         }
 
         return { 

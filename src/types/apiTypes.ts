@@ -67,7 +67,7 @@ export enum SchemaStatus {
 
 // Interfaces para o SchemaRegistry
 export interface SchemaInput {
-    id: string;
+    schemaId: string;
     name: string;
     dataHash: string;
     channelName: string;
@@ -75,10 +75,17 @@ export interface SchemaInput {
 }
 
 export interface SchemaUpdateInput {
-    id: string;
+    schemaId: string;
     newDataHash: string;
     channelName: string;
-    description: string;
+    newDescription: string;
+}
+
+export interface SchemaStatusInput {
+    schemaId: string;
+    version: number;
+    channelName: string;
+    status: SchemaStatus;
 }
 
 export interface Schema {
