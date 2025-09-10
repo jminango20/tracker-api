@@ -10,7 +10,7 @@ import {
     ProcessInput,
     Process
 } from '../types/processRegistryTypes';
-
+import { ContractErrorHandler } from '../errors/contractErrorHandler';
 
 export class ProcessRegistryService extends BlockchainService {
     private addressDiscoveryService: AddressDiscoveryService;
@@ -95,7 +95,8 @@ export class ProcessRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'criar processo');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'criar processo');
             
             return {
                 success: false,
@@ -154,7 +155,8 @@ export class ProcessRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'alterar status do processo');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'alterar status do processo');
 
             return {
                 success: false,
@@ -209,7 +211,8 @@ export class ProcessRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'inativar processo');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'inativar processo');
                         
             return {
                 success: false,
@@ -266,7 +269,8 @@ export class ProcessRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'obter processo');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'obter processo');
             
             return {
                 success: false,
@@ -318,7 +322,8 @@ export class ProcessRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'validar processo para submissão');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'validar processo para submissão');
                     
             return {
                 success: false,

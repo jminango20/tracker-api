@@ -3,6 +3,7 @@ import { BlockchainService } from './base/blockchainService';
 import { config } from '../config/app';
 import { IADDRESS_DISCOVERY_ABI } from '../config/abis/IAddressDiscovery';
 import { ApiResponse, ContractData } from '../types/apiTypes';
+import { ContractErrorHandler } from '../errors/contractErrorHandler';
 
 export class AddressDiscoveryService extends BlockchainService {
     protected contractAddress = config.blockchain.addressDiscoveryAddress;
@@ -34,20 +35,9 @@ export class AddressDiscoveryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'buscar endereço');
-            
-            if (errorInfo.type === 'CONTRACT_NOT_REGISTERED') {
-                return {
-                    success: true,
-                    data: {
-                        contractName,
-                        address: null,
-                        isRegistered: false,
-                        message: 'Contrato não está registrado'
-                    }
-                };
-            }
-            
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'buscar endereço');
+                        
             return {
                 success: false,
                 error: errorInfo.message
@@ -77,7 +67,8 @@ export class AddressDiscoveryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'verificar registro');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'verificar registro');
             
             return {
                 success: false,
@@ -115,7 +106,8 @@ export class AddressDiscoveryService extends BlockchainService {
             };    
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'atualizar endereço');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'atualizar endereço');
             
             return {
                 success: false,

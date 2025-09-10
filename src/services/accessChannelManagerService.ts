@@ -5,7 +5,7 @@ import { AddressDiscoveryService } from './addressDiscoveryService';
 import { IACCESS_CHANNEL_MANAGER_ABI } from '../config/abis/IAccessChannelManager';
 import { ApiResponse } from '../types/apiTypes';
 import { ChannelInfo } from '../types/apiTypes';
-
+import { ContractErrorHandler } from '../errors/contractErrorHandler';
 
 export class AccessChannelManagerService extends BlockchainService {
 
@@ -71,7 +71,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'criar canal');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'criar canal');
             
             return {
                 success: false,
@@ -108,7 +109,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'ativar canal');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'ativar canal');
 
             return {
                 success: false,
@@ -145,7 +147,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
             
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'desativar canal');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'desativar canal');
             
             return {
                 success: false,
@@ -186,7 +189,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'adicionar membro');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'adicionar membro');
             return {
                 success: false,
                 error: errorInfo.message
@@ -226,7 +230,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'remover membro');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'remover membro');
                         
             return {
                 success: false,
@@ -271,7 +276,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'adicionar membros');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'adicionar membros');
             
             return {
                 success: false,
@@ -316,7 +322,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'remover membros');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'remover membros');
                                     
             return {
                 success: false,
@@ -353,7 +360,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'verificar membro');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'verificar membro');
             
             return {
                 success: false,
@@ -397,21 +405,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'obter membros paginados');
-            
-            if (errorInfo.type === 'INVALID_PAGE_NUMBER') {
-                return {
-                    success: false,
-                    error: 'Número da página é inválido'
-                };
-            }
-            
-            if (errorInfo.type === 'INVALID_PAGE_SIZE') {
-                return {
-                    success: false,
-                    error: 'Tamanho da página é inválido'
-                };
-            }
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'obter membros paginados');
             
             return {
                 success: false,
@@ -446,7 +441,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'buscar informações do canal');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'buscar informações do canal');
             
             return {
                 success: false,
@@ -477,7 +473,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'obter total de canais');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'obter total de canais');
             
             return {
                 success: false,
@@ -514,21 +511,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'obter canais paginados');
-            
-            if (errorInfo.type === 'INVALID_PAGE_NUMBER') {
-                return {
-                    success: false,
-                    error: 'Número da página é inválido'
-                };
-            }
-            
-            if (errorInfo.type === 'INVALID_PAGE_SIZE') {
-                return {
-                    success: false,
-                    error: 'Tamanho da página é inválido'
-                };
-            }
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'obter canais paginados');
             
             return {
                 success: false,
@@ -561,7 +545,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'obter total de membros');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'obter total de membros');
             
             return {
                 success: false,
@@ -601,7 +586,8 @@ export class AccessChannelManagerService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'verificar múltiplos membros');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'verificar múltiplos membros');
             
             return {
                 success: false,

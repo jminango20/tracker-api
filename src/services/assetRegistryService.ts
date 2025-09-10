@@ -8,6 +8,7 @@ import {
     AssetStatus, 
     Asset
 } from '../types/assetRegistryTypes';
+import { ContractErrorHandler } from '../errors/contractErrorHandler';
 
 
 export class AssetRegistryService extends BlockchainService {
@@ -89,7 +90,8 @@ export class AssetRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'obter processo');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'obter processo');
             
             return {
                 success: false,

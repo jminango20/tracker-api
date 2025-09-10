@@ -9,6 +9,7 @@ import {
     SchemaUpdateInput,
     SchemaStatus 
 } from '../types/apiTypes';
+import { ContractErrorHandler } from '../errors/contractErrorHandler';
 
 export class SchemaRegistryService extends BlockchainService {
     private addressDiscoveryService: AddressDiscoveryService;
@@ -82,7 +83,8 @@ export class SchemaRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'criar schema');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError ||this.handleBlockchainError(error, 'criar schema');
             
             return {
                 success: false,
@@ -127,36 +129,9 @@ export class SchemaRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'atualizar schema');
-            
-            if (errorInfo.type === 'SCHEMA_NOT_FOUND') {
-                return {
-                    success: false,
-                    error: `Schema '${schemaUpdate.schemaId}' não encontrado no canal '${schemaUpdate.channelName}'.`
-                };
-            }
-            
-            if (errorInfo.type === 'NOT_SCHEMA_OWNER') {
-                return {
-                    success: false,
-                    error: `Apenas o proprietário pode atualizar o schema '${schemaUpdate.schemaId}'.`
-                };
-            }
-            
-            if (errorInfo.type === 'INVALID_DATA_HASH') {
-                return {
-                    success: false,
-                    error: 'Hash dos dados é inválido.'
-                };
-            }
-            
-            if (errorInfo.type === 'DESCRIPTION_TOO_LONG') {
-                return {
-                    success: false,
-                    error: 'Descrição do schema é muito longa.'
-                };
-            }
-            
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'atualizar schema');
+                        
             return {
                 success: false,
                 error: errorInfo.message
@@ -196,7 +171,8 @@ export class SchemaRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'depreciar schema');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'depreciar schema');
 
             return {
                 success: false,
@@ -242,7 +218,8 @@ export class SchemaRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'inativar schema');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'inativar schema');
                 
             return {
                 success: false,
@@ -294,28 +271,8 @@ export class SchemaRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'alterar status do schema');
-            
-            if (errorInfo.type === 'SCHEMA_NOT_FOUND') {
-                return {
-                    success: false,
-                    error: `Schema '${schemaId}' não encontrado no canal '${channelName}'.`
-                };
-            }
-            
-            if (errorInfo.type === 'SCHEMA_VERSION_NOT_FOUND') {
-                return {
-                    success: false,
-                    error: `Versão ${version} do schema '${schemaId}' não encontrada no canal '${channelName}'.`
-                };
-            }
-            
-            if (errorInfo.type === 'NOT_SCHEMA_OWNER') {
-                return {
-                    success: false,
-                    error: `Apenas o proprietário pode alterar o status do schema '${schemaId}'.`
-                };
-            }
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'alterar status do schema');
             
             return {
                 success: false,
@@ -359,7 +316,8 @@ export class SchemaRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'obter schema por versão');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'obter schema por versão');
             
             return {
                 success: false,
@@ -403,22 +361,9 @@ export class SchemaRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'obter schema ativo');
-            
-            if (errorInfo.type === 'SCHEMA_NOT_FOUND') {
-                return {
-                    success: false,
-                    error: `Schema '${schemaId}' não encontrado no canal '${channelName}'.`
-                };
-            }
-            
-            if (errorInfo.type === 'SCHEMA_NOT_ACTIVE') {
-                return {
-                    success: false,
-                    error: `Schema '${schemaId}' não possui versão ativa no canal '${channelName}'.`
-                };
-            }
-            
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'obter schema ativo');
+                        
             return {
                 success: false,
                 error: errorInfo.message
@@ -455,7 +400,8 @@ export class SchemaRegistryService extends BlockchainService {
             };
 
         } catch (error) {
-            const errorInfo = this.handleBlockchainError(error, 'obter informações do schema');
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'obter informações do schema');
                        
             return {
                 success: false,
