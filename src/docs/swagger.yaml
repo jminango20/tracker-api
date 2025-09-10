@@ -1,0 +1,1230 @@
+openapi: 3.0.0
+info:
+  title: Tracker API - Blockchain Registry
+  version: 1.0.0
+  description: |
+    API para gerenciamento de registros blockchain incluindo:
+    - AddressDiscovery: Descoberta de endereços de contratos
+    - AccessChannelManager: Gerenciamento de canais e membros
+    - SchemaRegistry: Registro e versionamento de schemas
+    - ProcessRegistry: Registro de processos de negócio
+  contact:
+    name: CPqD Team
+    email: support@cpqd.com.br
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor de desenvolvimento
+
+components:
+  securitySchemes:
+    PrivateKey:
+      type: apiKey
+      in: header
+      name: x-private-key
+      description: Chave privada para assinatura de transações blockchain
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se a operação foi bem-sucedida
+        data:
+          type: object
+          description: Dados retornados pela operação
+        error:
+          type: string
+          description: Mensagem de erro (apenas quando success=false)
+        message:
+          type: string
+          description: Mensagem informativa
+
+    TransactionResponse:
+      type: object
+      properties:
+        transactionHash:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{64}$'
+          description: Hash da transação blockchain
+        blockNumber:
+          type: string
+          description: Número do bloco onde a transação foi incluída
+        gasUsed:
+          type: string
+          description: Quantidade de gas utilizada
+
+    SchemaReference:
+      type: object
+      required:
+        - schemaId
+        - version
+      properties:
+        schemaId:
+          type: string
+          description: Identificador único do schema
+          example: user-profile-schema
+        version:
+          type: integer
+          minimum: 1
+          description: Versão específica do schema
+          example: 1
+
+    ProcessAction:
+      type: string
+      enum:
+        - CREATE_ASSET
+        - UPDATE_ASSET
+        - TRANSFER_ASSET
+        - SPLIT_ASSET
+        - GROUP_ASSET
+        - UNGROUP_ASSET
+        - TRANSFORM_ASSET
+        - INACTIVATE_ASSET
+        - CREATE_DOCUMENT
+      description: Ações disponíveis para processos
+
+    ProcessStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+      description: Status do processo
+
+    SchemaStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - DEPRECATED
+        - INACTIVE
+      description: Status do schema
+
+tags:
+  - name: Address Discovery
+    description: Operações de descoberta de endereços de contratos
+  - name: Access Channel Manager
+    description: Gerenciamento de canais de acesso e membros
+  - name: Schema Registry
+    description: Registro e versionamento de schemas de dados
+  - name: Process Registry
+    description: Registro de processos de negócio
+
+paths:
+  # Address Discovery endpoints
+  /addressDiscovery/getAddress:
+    post:
+      summary: Buscar endereço de um contrato
+      description: Recupera o endereço de um contrato registrado
+      tags:
+        - Address Discovery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - contractName
+              properties:
+                contractName:
+                  type: string
+                  description: Nome do contrato
+                  example: SCHEMA_REGISTRY
+      responses:
+        '200':
+          description: Endereço encontrado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          contractName:
+                            type: string
+                          addressContract:
+                            type: string
+                          isRegistered:
+                            type: boolean
+                          message:
+                            type: string
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Contrato não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  
+  /addressDiscovery/isRegistered:
+    post:
+      summary: Verificar se contrato está registrado
+      description: Verifica se um contrato está registrado no AddressDiscovery
+      tags:
+        - Address Discovery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - contractName
+              properties:
+                contractName:
+                  type: string
+                  example: SCHEMA_REGISTRY
+      responses:
+        '200':
+          description: Status de registro verificado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          contractName:
+                            type: string
+                          isRegistered:
+                            type: boolean
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /addressDiscovery/updateAddress:
+    post:
+      summary: Atualizar endereço de um contrato
+      description: Atualiza o endereço de um contrato registrado
+      tags:
+        - Address Discovery
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - contractName
+                - newAddress
+              properties:
+                contractName:
+                  type: string
+                  example: SCHEMA_REGISTRY
+                newAddress:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}'   
+                  description: Novo endereço do contrato
+                  example: "0x1234567890123456789012345678901234567890"                   
+      responses:
+        '200':
+          description: Endereço atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/TransactionResponse'
+                          - type: object
+                            properties:
+                              contractName:
+                                type: string
+                              newAddress:
+                                type: string
+                              message:
+                                type: string
+        '400':
+          description: Erro de validação ou transação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  # Access Channel Manager endpoints
+  /accessChannel/create:
+    post:
+      summary: Criar um novo canal
+      description: Cria um novo canal de acesso
+      tags:
+        - Access Channel Manager
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+              properties:
+                channelName:
+                  type: string
+                  example: canal-producao
+      responses:
+        '200':
+          description: Canal criado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+ 
+  /accessChannel/activate:
+    post:
+      summary: Ativar um canal
+      tags:
+        - Access Channel Manager
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+              properties:
+                channelName:
+                  type: string
+                  example: canal-producao
+      responses:
+        '200':
+          description: Canal ativado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /accessChannel/desactivate:
+    post:
+      summary: Desativar um canal
+      tags:
+        - Access Channel Manager
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+              properties:
+                channelName:
+                  type: string
+                  example: canal-producao
+      responses:
+        '200':
+          description: Canal desativado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /accessChannel/info:
+    post:
+      summary: Buscar informações de um canal
+      description: Recupera informações detalhadas de um canal
+      tags:
+        - Access Channel Manager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+              properties:
+                channelName:
+                  type: string
+                  example: canal-producao
+      responses:
+        '200':
+          description: Informações do canal obtidas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          channelName:
+                            type: string
+                          exists:
+                            type: boolean
+                          isActive:
+                            type: boolean
+                          creator:
+                            type: string
+                          memberCount:
+                            type: integer
+                          createdAt:
+                            type: string
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /accessChannel/addMember:
+    post:
+      summary: Adicionar membro ao canal
+      tags:
+        - Access Channel Manager
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+                - memberAddress
+              properties:
+                channelName:
+                  type: string
+                  example: canal-producao
+                memberAddress:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}$'
+                  example: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+      responses:
+        '200':
+          description: Membro adicionado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/TransactionResponse'
+                          - type: object
+                            properties:
+                              channelName:
+                                type: string
+                              memberAddress:
+                                type: string
+                              message:
+                                type: string
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /accessChannel/removeMember:
+    post:
+      summary: Remover membro do canal
+      tags:
+        - Access Channel Manager
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+                - memberAddress
+              properties:
+                channelName:
+                  type: string
+                memberAddress:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}$'
+      responses:
+        '200':
+          description: Membro adicionado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/TransactionResponse'
+                          - type: object
+                            properties:
+                              channelName:
+                                type: string
+                              memberAddress:
+                                type: string
+                              message:
+                                type: string
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+ 
+  /accessChannel/addMembers:
+    post:
+      summary: Adicionar múltiplos membros ao canal
+      tags:
+        - Access Channel Manager
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+                - memberAddresses
+              properties:
+                channelName:
+                  type: string
+                memberAddresses:
+                  type: array
+                  items:
+                    type: string
+                    pattern: '^0x[a-fA-F0-9]{40}$'
+                  maxItems: 50
+      responses:
+        '200':
+          description: Membros adicionados com sucesso
+        '400':
+          description: Erro de validação
+        '500':
+          description: Erro interno do servidor
+
+  /accessChannel/removeMembers:
+    post:
+      summary: Remover múltiplos membros do canal
+      tags:
+        - Access Channel Manager
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+                - memberAddresses
+              properties:
+                channelName:
+                  type: string
+                memberAddresses:
+                  type: array
+                  items:
+                    type: string
+                    pattern: '^0x[a-fA-F0-9]{40}$'
+                  maxItems: 50
+      responses:
+        '200':
+          description: Membros removidos com sucesso
+        '400':
+          description: Erro de validação
+        '500':
+          description: Erro interno do servidor
+ 
+  /accessChannel/isChannelMember:
+    post:
+      summary: Verificar se é membro do canal
+      tags:
+        - Access Channel Manager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+                - memberAddress
+              properties:
+                channelName:
+                  type: string
+                memberAddress:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}$'
+      responses:
+        '200':
+          description: Status de membro verificado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          channelName:
+                            type: string
+                          memberAddress:
+                            type: string
+                          isMember:
+                            type: boolean
+                          message:
+                            type: string
+        '400':
+          description: Erro de validação
+        '500':
+          description: Erro interno do servidor
+
+  /accessChannel/count:
+    get:
+      summary: Obter total de canais
+      tags:
+        - Access Channel Manager
+      responses:
+        '200':
+          description: Total de canais obtido
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          totalChannels:
+                            type: integer
+                          message:
+                            type: string
+        '400':
+          description: Erro na operação
+        '500':
+          description: Erro interno do servidor
+ 
+  /accessChannel/channels:
+    get:
+      summary: Obter canais paginados
+      tags:
+        - Access Channel Manager
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Canais obtidos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          channels:
+                            type: array
+                            items:
+                              type: string
+                          totalChannels:
+                            type: integer
+                          totalPages:
+                            type: integer
+                          hasNextPage:
+                            type: boolean
+                          currentPage:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          message:
+                            type: string
+        '400':
+          description: Erro de validação
+        '500':
+          description: Erro interno do servidor
+
+  /accessChannel/memberCount:
+    post:
+      summary: Obter total de membros do canal
+      tags:
+        - Access Channel Manager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+              properties:
+                channelName:
+                  type: string
+      responses:
+        '200':
+          description: Total de membros obtido
+        '400':
+          description: Erro de validação
+        '500':
+          description: Erro interno do servidor
+  
+  /accessChannel/members:
+    post:
+      summary: Obter membros paginados
+      tags:
+        - Access Channel Manager
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+              properties:
+                channelName:
+                  type: string
+      responses:
+        '200':
+          description: Membros obtidos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          channelName:
+                            type: string
+                          members:
+                            type: array
+                            items:
+                              type: string
+                              pattern: '^0x[a-fA-F0-9]{40}$'
+                          totalMembers:
+                            type: integer
+                          totalPages:
+                            type: integer
+                          hasNextPage:
+                            type: boolean
+                          currentPage:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          message:
+                            type: string
+        '400':
+          description: Erro de validação
+        '500':
+          description: Erro interno do servidor
+  
+  /accessChannel/checkMembers:
+    post:
+      summary: Verificar múltiplos membros
+      tags:
+        - Access Channel Manager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+                - memberAddresses
+              properties:
+                channelName:
+                  type: string
+                memberAddresses:
+                  type: array
+                  items:
+                    type: string
+                    pattern: '^0x[a-fA-F0-9]{40}$'
+                  maxItems: 50
+      responses:
+        '200':
+          description: Status dos membros verificado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          channelName:
+                            type: string
+                          memberStatus:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                address:
+                                  type: string
+                                isMember:
+                                  type: boolean
+                          totalChecked:
+                            type: integer
+                          message:
+                            type: string
+        '400':
+          description: Erro de validação
+        '500':
+          description: Erro interno do servidor
+
+  # Process Registry endpoints
+  /process/create:
+    post:
+      summary: Criar um novo processo de negócio
+      description: Registra um novo processo no blockchain com schemas associados
+      tags:
+        - Process Registry
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - processId
+                - natureId
+                - stageId
+                - action
+                - description
+                - channelName
+              properties:
+                processId:
+                  type: string
+                  description: Identificador único do processo
+                  pattern: '^[a-zA-Z0-9_-]+$'
+                  example: production-coffee-beans
+                natureId:
+                  type: string
+                  description: Identificador da natureza do produto
+                  example: agricultural-product
+                stageId:
+                  type: string
+                  description: Identificador do estágio da operação
+                  example: harvest
+                schemas:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SchemaReference'
+                  maxItems: 20
+                  example:
+                    - schemaId: harvest-data-schema
+                      version: 1
+                action:
+                  $ref: '#/components/schemas/ProcessAction'
+                  example: CREATE_ASSET
+                description:
+                  type: string
+                  maxLength: 500
+                  description: Descrição detalhada do processo
+                  example: Processo de colheita de grãos de café orgânico
+                channelName:
+                  type: string
+                  description: Nome do canal virtual
+                  example: canal-cafe
+      responses:
+        '200':
+          description: Processo criado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/TransactionResponse'
+                          - type: object
+                            properties:
+                              processId:
+                                type: string
+                              natureId:
+                                type: string
+                              stageId:
+                                type: string
+                              action:
+                                type: string
+                              channelName:
+                                type: string
+                              message:
+                                type: string
+        '400':
+          description: Erro de validação ou processo já existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro interno do servidor
+
+  /process/get:
+    post:
+      summary: Buscar um processo específico
+      description: Recupera informações detalhadas de um processo registrado
+      tags:
+        - Process Registry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+                - processId
+                - natureId
+                - stageId
+              properties:
+                channelName:
+                  type: string
+                  example: canal-cafe
+                processId:
+                  type: string
+                  example: production-coffee-beans
+                natureId:
+                  type: string
+                  example: agricultural-product
+                stageId:
+                  type: string
+                  example: harvest
+      responses:
+        '200':
+          description: Processo encontrado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          processId:
+                            type: string
+                          natureId:
+                            type: string
+                          stageId:
+                            type: string
+                          schemas:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/SchemaReference'
+                          action:
+                            type: string
+                          description:
+                            type: string
+                          owner:
+                            type: string
+                          channelName:
+                            type: string
+                          status:
+                            $ref: '#/components/schemas/ProcessStatus'
+                          createdAt:
+                            type: string
+                          lastUpdated:
+                            type: string
+        '400':
+          description: Processo não encontrado
+
+  /process/status:
+    post:
+      summary: Alterar status do processo
+      description: Altera o status de um processo existente (ACTIVE/INACTIVE)
+      tags:
+        - Process Registry
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+                - processId
+                - natureId
+                - stageId
+                - status
+              properties:
+                channelName:
+                  type: string
+                  example: canal-cafe
+                processId:
+                  type: string
+                  example: production-coffee-beans
+                natureId:
+                  type: string
+                  example: agricultural-product
+                stageId:
+                  type: string
+                  example: harvest
+                status:
+                  $ref: '#/components/schemas/ProcessStatus'
+                  example: INACTIVE
+      responses:
+        '200':
+          description: Status alterado com sucesso
+        '400':
+          description: Processo não encontrado ou erro de validação
+
+  /process/inactivate:
+    post:
+      summary: Inativar um processo
+      description: Inativa um processo específico (atalho para definir status como INACTIVE)
+      tags:
+        - Process Registry
+      security:
+        - PrivateKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+                - processId
+                - natureId
+                - stageId
+              properties:
+                channelName:
+                  type: string
+                  example: canal-cafe
+                processId:
+                  type: string
+                  example: production-coffee-beans
+                natureId:
+                  type: string
+                  example: agricultural-product
+                stageId:
+                  type: string
+                  example: harvest
+      responses:
+        '200':
+          description: Processo inativado com sucesso
+        '400':
+          description: Processo não encontrado ou já está inativo
+
+  /process/validate:
+    post:
+      summary: Validar processo para submissão
+      description: Verifica se um processo está válido para receber submissões de dados
+      tags:
+        - Process Registry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channelName
+                - processId
+                - natureId
+                - stageId
+              properties:
+                channelName:
+                  type: string
+                  example: canal-cafe
+                processId:
+                  type: string
+                  example: production-coffee-beans
+                natureId:
+                  type: string
+                  example: agricultural-product
+                stageId:
+                  type: string
+                  example: harvest
+      responses:
+        '200':
+          description: Validação realizada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          processId:
+                            type: string
+                          natureId:
+                            type: string
+                          stageId:
+                            type: string
+                          channelName:
+                            type: string
+                          isValid:
+                            type: boolean
+                            description: Indica se o processo é válido para submissão
+                          reason:
+                            type: string
+                            description: Razão pela qual o processo não é válido (se aplicável)
+                          message:
+                            type: string
+        '400':
+          description: Processo não encontrado
