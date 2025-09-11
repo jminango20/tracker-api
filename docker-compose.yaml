@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15.1-alpine
+    container_name: tracker_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 5432:${POSTGRES_PORT}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - tracker-network
+
+volumes:
+  pgdata:
+networks:
+  tracker-network:
+    driver: bridge
