@@ -7,6 +7,8 @@ import schemaRegistryRoutes from './routes/schemaRegistryRoutes';
 import processRegistryRoutes from './routes/processRegistryRoutes';
 import assetRegistryRoutes from './routes/assetRegistryRoutes';
 import transactionRoutes from './routes/transactionOrchestratorRoutes'; 
+import healthRoutes from './routes/healthCheckRoutes';
+import transactionDetailRoutes from './routes/transactionRoutes';
 import { config } from './config/app';
 import { checkConnection } from './config/blockchain';
 
@@ -28,6 +30,9 @@ app.get('/', (req, res) => {
     });
 });
 
+// Rotas de health check
+app.use('/api', healthRoutes);
+
 // Rotas de contratos usando AddressDiscovery
 app.use('/addressDiscovery', contractRoutes);
 
@@ -46,6 +51,9 @@ app.use('/assets', assetRegistryRoutes);
 // Rotas de transações
 app.use('/transaction', transactionRoutes);
 
+// Rotas de análise de transações 
+app.use('/txHash', transactionDetailRoutes);
+
 async function startServer() {
   try {
     console.log('Testando conexão com blockchain...');
@@ -63,12 +71,14 @@ async function startServer() {
       console.log(`URL: http://localhost:${config.server.port}`);
       console.log(`Documentação: http://localhost:${config.server.port}/api-docs`);
       console.log('\nRotas disponíveis:');
+      console.log(' - Health Check: /api');
       console.log(' - Address Discovery: /addressDiscovery/*');
       console.log(' - Access Channels: /accessChannel/*');
       console.log(' - Schema Registry: /schemas/*');
       console.log(' - Process Registry: /process/*');
       console.log(' - Asset Registry: /assets/*');
       console.log(' - Transaction Orchestrator: /transaction/*');
+      console.log(' - Transaction Details: /txHash/*');
       console.log('\n');
     });
 
