@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+//Criar o schema do banco de dados
+model AssetEvent {
+  id                Int    @id @default(autoincrement())
+  blockNumber       BigInt
+  transactionHash   String
+  logIndex          Int     // Para ordenação dentro da mesma tx
+
+  // Campos sempre presentes
+  eventName         String
+  channelName       String
+  timestamp         DateTime
+
+  // Asset IDs (principais)
+  primaryAssetId    String   // Asset principal
+  secondaryAssetId  String?  // Para relacionamento (parent, group, child, etc...)
+
+  // Dados estruturados comuns
+  owner             String?
+  operation         String? // CREATE, UPDATE, TRANSFER, TRANSFERIN, SPLIT, GROUP, UNGROUP, TRANSFORM, INACTIVATE
+
+  // Array para casos especiais (split, group)
+  relatedAssetIds   String[]  // IDs de assets relacionados
+  amounts           BigInt[]  // Quantidades de assets relacionados
+
+  // JSON para dados extras especificos
+  eventData         Json?     // Location, description, etc...
+
+  createdAt         DateTime @default(now())
+
+  @@index([primaryAssetId])
+  @@index([blockNumber])
+  @@index([eventName])
+  @@index([transactionHash])
+
+  @@unique([transactionHash, logIndex], name: "unique_event")
+
+  @@map("asset_events")
+}
+
+// Tabela separada para tracking de blocos processados
+model BlockTracker {
+  id              Int      @id @default(autoincrement())
+  lastBlock       BigInt
+  serviceName     String   @default("EventListener")
+  lastUpdated     DateTime @default(now()) @updatedAt
+  
+  @@map("block_tracker")
+}

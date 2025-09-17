@@ -9,8 +9,10 @@ import assetRegistryRoutes from './routes/assetRegistryRoutes';
 import transactionRoutes from './routes/transactionOrchestratorRoutes'; 
 import healthRoutes from './routes/healthCheckRoutes';
 import transactionDetailRoutes from './routes/transactionRoutes';
+import assetHistoryRoutes from './routes/assetHistoryRoutes';
 import { config } from './config/app';
 import { checkConnection } from './config/blockchain';
+import { EventListenerService } from './services/events/eventListenerService';
 
 const app = express();
 
@@ -54,6 +56,9 @@ app.use('/transaction', transactionRoutes);
 // Rotas de análise de transações 
 app.use('/txHash', transactionDetailRoutes);
 
+// Rotas de histórico de assets
+app.use('/assetHistory', assetHistoryRoutes);
+
 async function startServer() {
   try {
     console.log('Testando conexão com blockchain...');
@@ -80,6 +85,20 @@ async function startServer() {
       console.log(' - Transaction Orchestrator: /transaction/*');
       console.log(' - Transaction Details: /txHash/*');
       console.log('\n');
+
+      const eventListener = new EventListenerService();
+        try {
+          console.log('1. Inicializando EventListener...');
+          eventListener.initialize();
+          
+          console.log('2. Iniciando monitoramento de eventos...');
+          eventListener.startListening();
+          
+          console.log('EventListener ativo - capturando eventos da blockchain');
+          
+        } catch (error) {
+          console.error('Erro ao iniciar EventListener:', error);
+        }
     });
 
   } catch (error) {
