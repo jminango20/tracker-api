@@ -16,6 +16,7 @@ export interface AssetHistoryQuery {
     type: HistoryQueryType;
     
     // Filtros opcionais
+    channelName?: string;
     fromDate?: Date;
     toDate?: Date;
     operations?: string[];       // Filtrar por tipos de operação
@@ -39,7 +40,6 @@ export interface AssetHistoryEvent {
     relatedAssetIds: string[];
     
     // Metadados
-    channelName: string;
     timestamp: Date;
     blockNumber: string;
     transactionHash: string;

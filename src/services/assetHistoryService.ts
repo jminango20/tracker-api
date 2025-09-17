@@ -86,7 +86,7 @@ export class AssetHistoryService {
      * Obter histórico DIRECT (apenas eventos do asset específico)
      */
     private async getDirectHistory(query: AssetHistoryQuery): Promise<{ events: AssetHistoryEvent[] }> {
-        console.log(`Executando query DIRECT para asset: ${query.assetId}`);
+        console.log(`Executando query DIRECT para asset: ${query.assetId} no canal: ${query.channelName}`);
 
         let sqlQuery = `
             SELECT 
@@ -105,10 +105,11 @@ export class AssetHistoryService {
                 "createdAt"
             FROM asset_events 
             WHERE "primaryAssetId" = $1
+                AND "channelName" = $2
         `;
 
-        const queryParams: any[] = [query.assetId];
-        let paramIndex = 2;
+        const queryParams: any[] = [query.assetId, query.channelName];
+        let paramIndex = 3;
 
         // Adicionar filtros opcionais
         if (query.fromDate) {
@@ -143,7 +144,7 @@ export class AssetHistoryService {
             queryParams.push(query.offset);
         }
 
-        console.log('🔍 SQL Query:', sqlQuery.substring(0, 100) + '...');
+        console.log(`SQL Query: ${sqlQuery.substring(0, 120)}...`);
 
         const result = await DatabaseService.query(sqlQuery, queryParams);
         const events = this.mapRowsToEvents(result.rows);
@@ -189,44 +190,41 @@ export class AssetHistoryService {
     }
 
     /**
-     * Encontrar todos os assets relacionados usando CTE recursiva (VERDADEIRA recursão)
+     * Encontrar todos os assets relacionados usando CTE recursiva 
      */
     private async findRelatedAssets(assetId: string, maxDepth: number): Promise<string[]> {
         const sqlQuery = `
             WITH RECURSIVE asset_graph AS (
-                -- 🔹 ÂNCORA: Começamos com o próprio asset (depth 0)
+                -- Caso base: asset consultado
+                SELECT "primaryAssetId" as asset_id, 0 as depth
+                FROM asset_events 
+                WHERE "primaryAssetId" = $1
+                
+                UNION
+                
+                -- Recursão: buscar relacionamentos através de secondaryAssetId
                 SELECT 
-                    $1::TEXT as asset_id,
-                    0 as depth
-
-                UNION ALL
-
-                -- 🔸 RECURSÃO: Buscar PAIS e FILHOS juntos em uma única junção
-                SELECT DISTINCT
-                    CASE
-                        WHEN ae."secondaryAssetId" IS NOT NULL AND ae."primaryAssetId" = ag.asset_id THEN ae."secondaryAssetId"
-                        WHEN ae2."primaryAssetId" IS NOT NULL AND ae2."secondaryAssetId" = ag.asset_id THEN ae2."primaryAssetId"
+                    CASE 
+                        WHEN e."primaryAssetId" = ag.asset_id THEN e."secondaryAssetId"
+                        WHEN e."secondaryAssetId" = ag.asset_id THEN e."primaryAssetId"
                     END as asset_id,
-                    ag.depth + 1 as depth
-                FROM asset_graph ag
-
-                -- Junta com eventos onde o asset atual é primary (para buscar pais)
-                LEFT JOIN asset_events ae ON ae."primaryAssetId" = ag.asset_id
-
-                -- Junta com eventos onde o asset atual é secondary (para buscar filhos)
-                LEFT JOIN asset_events ae2 ON ae2."secondaryAssetId" = ag.asset_id
-
-                WHERE ag.depth < $2
-                AND (
-                    (ae."secondaryAssetId" IS NOT NULL AND ae."secondaryAssetId" != '0x0000000000000000000000000000000000000000000000000000000000000000')
-                    OR
-                    (ae2."primaryAssetId" IS NOT NULL AND ae2."secondaryAssetId" != '0x0000000000000000000000000000000000000000000000000000000000000000')
-                )
+                    CASE
+                        WHEN e."primaryAssetId" = ag.asset_id THEN ag.depth - 1  -- pai
+                        WHEN e."secondaryAssetId" = ag.asset_id THEN ag.depth + 1  -- filho
+                    END as depth
+                FROM asset_events e, asset_graph ag
+                WHERE (e."primaryAssetId" = ag.asset_id OR e."secondaryAssetId" = ag.asset_id)
+                AND e."secondaryAssetId" IS NOT NULL
+                AND e."secondaryAssetId" != '0x0000000000000000000000000000000000000000000000000000000000000000'
+                AND ag.depth BETWEEN $2 AND $3
             )
-            SELECT DISTINCT asset_id FROM asset_graph WHERE asset_id IS NOT NULL;
+            SELECT DISTINCT asset_id 
+            FROM asset_graph 
+            WHERE asset_id IS NOT NULL
+            ORDER BY asset_id;
         `;
 
-        const result = await DatabaseService.query(sqlQuery, [assetId, maxDepth]);
+        const result = await DatabaseService.query(sqlQuery, [assetId, -maxDepth, maxDepth]);
         return result.rows.map((row: any) => row.asset_id);
     }
 
@@ -361,7 +359,6 @@ export class AssetHistoryService {
             primaryAssetId: row.primaryAssetId,
             secondaryAssetId: row.secondaryAssetId,
             relatedAssetIds: row.relatedAssetIds || [],
-            channelName: row.channelName,
             timestamp: row.timestamp,
             blockNumber: row.blockNumber?.toString() || '0',
             transactionHash: row.transactionHash,

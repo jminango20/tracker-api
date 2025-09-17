@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { keccak256, toHex } from 'viem';
 import { AssetHistoryService } from '../services/assetHistoryService';
 import { ResponseHelper } from '../utils/responseHelper';
 import { 
@@ -20,7 +21,7 @@ export class AssetHistoryController {
      */
     async getAssetHistory(req: Request, res: Response) {
         try {
-            const { assetId, type, fromDate, toDate, operations, maxDepth, limit, offset } = req.body;
+            const { assetId, channelName,type, fromDate, toDate, operations, maxDepth, limit, offset } = req.body;
 
             // Validações básicas
             if (!assetId || typeof assetId !== 'string') {
@@ -36,6 +37,7 @@ export class AssetHistoryController {
             // Construir query
             const query: AssetHistoryQuery = {
                 assetId: assetId.trim(),
+                channelName: keccak256(toHex(channelName.trim())),
                 type: type as HistoryQueryType,
                 fromDate: fromDate ? new Date(fromDate) : undefined,
                 toDate: toDate ? new Date(toDate) : undefined,
