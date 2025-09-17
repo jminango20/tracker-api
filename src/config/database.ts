@@ -65,12 +65,23 @@ export class DatabaseService {
 }
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
+process.once('SIGINT', async () => {
     console.log('Fechando pool de conexões PostgreSQL...');
-    await pool.end();
+    try {
+        await pool.end();
+        console.log('Pool PostgreSQL fechado');
+    } catch (error) {
+        console.error('Pool PostgreSQL fechado');
+    }
+    process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
+process.once('SIGTERM', async () => {
     console.log('Fechando pool de conexões PostgreSQL...');
-    await pool.end();
+    try {
+        await pool.end();
+        console.log('Pool PostgreSQL fechado');
+    } catch (error) {
+        console.error('Pool PostgreSQL fechado');
+    }
 });
