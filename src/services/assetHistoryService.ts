@@ -148,10 +148,11 @@ export class AssetHistoryService {
 
         const result = await DatabaseService.query(sqlQuery, queryParams);
         const events = this.mapRowsToEvents(result.rows);
+        const filteredEvents = this.filterRedundantEvents(events);
 
         console.log(`Query DIRECT concluída: ${events.length} eventos encontrados`);
 
-        return { events };
+        return { events: filteredEvents };
     }
 
     /**
@@ -390,6 +391,29 @@ export class AssetHistoryService {
         return mapping[operation] || operation;
     }
 
+    private filterRedundantEvents(events: AssetHistoryEvent[]): AssetHistoryEvent[] {
+        return events.filter(event => {
+            if (event.operation === 'LINEAGE') {
+                const hasMainEvent = events.some(e => 
+                    e.transactionHash === event.transactionHash && 
+                    e.operation !== 'LINEAGE' &&
+                    ['CREATE', 'TRANSFORM', 'SPLIT', 'GROUP', 'UNGROUP'].includes(e.operation)
+                );
+                return !hasMainEvent;
+            }
+            
+            if (event.operation === 'STATE_CHANGED') {
+                const hasUpdate = events.some(e => 
+                    e.transactionHash === event.transactionHash && 
+                    e.operation === 'UPDATE'
+                );
+                return !hasUpdate; // Remove STATE_CHANGED se há UPDATE
+            }
+            
+            return true;
+        });
+    }
+
     /**
      * Extrair amounts dos dados do evento
      */
@@ -398,9 +422,29 @@ export class AssetHistoryService {
         
         const amounts: string[] = [];
         
-        // Amount principal
+        // Amount principal (CREATE, etc.)
         if (eventData.amount !== undefined) {
             amounts.push(eventData.amount.toString());
+        }
+        
+        // New amount (UPDATE, TRANSFER, etc.)
+        if (eventData.newAmount !== undefined) {
+            amounts.push(eventData.newAmount.toString());
+        }
+        
+        // Previous amount (para histórico completo)
+        if (eventData.previousAmount !== undefined && eventData.previousAmount !== eventData.newAmount) {
+            amounts.unshift(eventData.previousAmount.toString()); // Adiciona no início
+        }
+        
+        // Split amounts
+        if (eventData.metadata?.splitAmounts) {
+            amounts.push(...eventData.metadata.splitAmounts.map((a: any) => a.toString()));
+        }
+        
+        // Total amount para groups
+        if (eventData.metadata?.totalAmount) {
+            amounts.push(eventData.metadata.totalAmount.toString());
         }
         
         return amounts;
