@@ -42,16 +42,16 @@ export class TransactionRequestValidator {
             return { isValid: false, error: 'CREATE_ASSET não deve ter targetAssetIds' };
         }
         
-        if (!request.operationData.initialAmount || request.operationData.initialAmount <= 0) {
-            return { isValid: false, error: 'initialAmount é obrigatório para CREATE_ASSET' };
+        if (!request.operationData.amount || request.operationData.amount <= 0) {
+            return { isValid: false, error: 'Campo amount é obrigatório para CREATE_ASSET' };
         }
         
-        if (!request.operationData.initialLocation) {
-            return { isValid: false, error: 'initialLocation é obrigatório para CREATE_ASSET' };
+        if (!request.operationData.idLocal) {
+            return { isValid: false, error: 'Campo idLocal é obrigatório para CREATE_ASSET' };
         }
         
-        if (!request.dataHash) {
-            return { isValid: false, error: 'dataHash é obrigatório para CREATE_ASSET' };
+        if (!request.operationData.dataHash) {
+            return { isValid: false, error: 'Campo dataHash é obrigatório para CREATE_ASSET' };
         }
         
         return { isValid: true };
@@ -62,8 +62,13 @@ export class TransactionRequestValidator {
             return { isValid: false, error: 'UPDATE_ASSET deve ter exatamente 1 targetAssetId' };
         }
         
-        if (!request.operationData.newLocation && !request.operationData.newAmount && !request.dataHash) {
-            return { isValid: false, error: 'UPDATE_ASSET deve ter pelo menos newLocation, newAmount ou dataHash' };
+        // Pelo menos um campo deve estar presente para update
+        const hasNewIdLocal = request.operationData.newIdLocal && request.operationData.newIdLocal.trim().length > 0;
+        const hasNewAmount = request.operationData.newAmount && request.operationData.newAmount > 0;
+        const hasNewDataHash = request.operationData.newDataHash && request.operationData.newDataHash.trim().length > 0;
+        
+        if (!hasNewIdLocal && !hasNewAmount && !hasNewDataHash) {
+            return { isValid: false, error: 'UPDATE_ASSET deve ter pelo menos newIdLocal, newAmount ou newDataHash' };
         }
         
         return { isValid: true };
@@ -74,40 +79,17 @@ export class TransactionRequestValidator {
             return { isValid: false, error: 'TRANSFER_ASSET deve ter exatamente 1 targetAssetId' };
         }
         
-        if (!request.operationData.targetOwner) {
-            return { isValid: false, error: 'targetOwner é obrigatório para TRANSFER_ASSET' };
+        if (!request.operationData.newOwner) {
+            return { isValid: false, error: 'Campo newOwner é obrigatório para TRANSFER_ASSET' };
         }
         
-        return { isValid: true };
-    }
-
-    static validateSplitAsset(request: TransactionRequest): { isValid: boolean; error?: string } {
-        if (request.targetAssetIds.length !== 1) {
-            return { isValid: false, error: 'SPLIT_ASSET deve ter exatamente 1 targetAssetId' };
+        // Validar formato de endereço Ethereum
+        if (!/^0x[a-fA-F0-9]{40}$/.test(request.operationData.newOwner)) {
+            return { isValid: false, error: 'newOwner deve ser um endereço Ethereum válido' };
         }
         
-        if (!request.operationData.splitAmounts || request.operationData.splitAmounts.length < 2) {
-            return { isValid: false, error: 'splitAmounts deve ter pelo menos 2 valores para SPLIT_ASSET' };
-        }
-        
-        if (!request.dataHashes || request.dataHashes.length !== request.operationData.splitAmounts.length) {
-            return { isValid: false, error: 'dataHashes deve ter o mesmo tamanho que splitAmounts' };
-        }
-        
-        return { isValid: true };
-    }
-
-    static validateGroupAsset(request: TransactionRequest): { isValid: boolean; error?: string } {
-        if (request.targetAssetIds.length < 2) {
-            return { isValid: false, error: 'GROUP_ASSET deve ter pelo menos 2 targetAssetIds' };
-        }
-        
-        return { isValid: true };
-    }
-
-    static validateUngroupAsset(request: TransactionRequest): { isValid: boolean; error?: string } {
-        if (request.targetAssetIds.length !== 1) {
-            return { isValid: false, error: 'UNGROUP_ASSET deve ter exatamente 1 targetAssetId (grupo)' };
+        if (!request.operationData.newIdLocal) {
+            return { isValid: false, error: 'Campo newIdLocal é obrigatório para TRANSFER_ASSET' };
         }
         
         return { isValid: true };
@@ -119,9 +101,74 @@ export class TransactionRequestValidator {
         }
         
         if (!request.operationData.newAssetId) {
-            return { isValid: false, error: 'newAssetId é obrigatório para TRANSFORM_ASSET' };
+            return { isValid: false, error: 'Campo newAssetId é obrigatório para TRANSFORM_ASSET' };
         }
         
+        // Validar que newAssetId é diferente do asset original
+        if (request.targetAssetIds[0] === request.operationData.newAssetId) {
+            return { isValid: false, error: 'newAssetId deve ser diferente do assetId original' };
+        }
+                
+        // newAmount é opcional - se não fornecido ou 0, herda do original
+        if (request.operationData.newAmount && request.operationData.newAmount < 0) {
+            return { isValid: false, error: 'Campo newAmount deve ser maior ou igual a 0' };
+        }
+        
+        return { isValid: true };
+    }
+
+    static validateSplitAsset(request: TransactionRequest): { isValid: boolean; error?: string } {
+        if (request.targetAssetIds.length !== 1) {
+            return { isValid: false, error: 'SPLIT_ASSET deve ter exatamente 1 targetAssetId' };
+        }
+        
+        if (!request.operationData.amounts || request.operationData.amounts.length < 2) {
+            return { isValid: false, error: 'Campo amounts deve ter pelo menos 2 valores para SPLIT_ASSET' };
+        }
+        
+        for (let i = 0; i < request.operationData.amounts.length; i++) {
+            if (request.operationData.amounts[i] <= 0) {
+                return { isValid: false, error: `Amount ${i + 1} deve ser maior que zero` };
+            }
+        }
+            
+        return { isValid: true };
+    }
+
+    static validateGroupAsset(request: TransactionRequest): { isValid: boolean; error?: string } {
+        if (request.targetAssetIds.length < 2) {
+            return { isValid: false, error: 'GROUP_ASSET deve ter pelo menos 2 targetAssetIds' };
+        }
+        
+        if (!request.operationData.newIdLocal) {
+            return { isValid: false, error: 'Campo newIdLocal é obrigatório para GROUP_ASSET' };
+        }
+        
+        // Validar que não há assetIds duplicados
+        const uniqueAssetIds = new Set(request.targetAssetIds);
+        if (uniqueAssetIds.size !== request.targetAssetIds.length) {
+            return { isValid: false, error: 'GROUP_ASSET não pode ter assetIds duplicados' };
+        }
+        
+        // Validar que todos os assetIds são válidos (não vazios)
+        for (let i = 0; i < request.targetAssetIds.length; i++) {
+            if (!request.targetAssetIds[i] || request.targetAssetIds[i].trim().length === 0) {
+                return { isValid: false, error: `AssetId ${i + 1} não pode estar vazio` };
+            }
+        }
+                
+        return { isValid: true };
+    }
+
+    static validateUngroupAsset(request: TransactionRequest): { isValid: boolean; error?: string } {
+        if (request.targetAssetIds.length !== 1) {
+            return { isValid: false, error: 'UNGROUP_ASSET deve ter exatamente 1 targetAssetId (grupo)' };
+        }
+        
+        if (!request.targetAssetIds[0] || request.targetAssetIds[0].trim().length === 0) {
+            return { isValid: false, error: 'AssetId do grupo não pode estar vazio' };
+        }
+                
         return { isValid: true };
     }
 
@@ -130,18 +177,15 @@ export class TransactionRequestValidator {
             return { isValid: false, error: 'INACTIVATE_ASSET deve ter exatamente 1 targetAssetId' };
         }
         
+        if (!request.targetAssetIds[0] || request.targetAssetIds[0].trim().length === 0) {
+            return { isValid: false, error: 'AssetId não pode estar vazio' };
+        }
+                
         return { isValid: true };
     }
 
-    static validateCreateDocument(request: TransactionRequest): { isValid: boolean; error?: string } {
-        if (request.targetAssetIds.length > 0) {
-            return { isValid: false, error: 'CREATE_DOCUMENT não deve ter targetAssetIds' };
-        }
-        
-        if (!request.dataHash) {
-            return { isValid: false, error: 'dataHash é obrigatório para CREATE_DOCUMENT' };
-        }
-        
+    //TODO
+    static validateCreateDocument(request: TransactionRequest): { isValid: boolean; error?: string } {        
         return { isValid: true };
     }
 }

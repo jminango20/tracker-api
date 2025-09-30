@@ -5,27 +5,25 @@ export interface TransactionRequest {
     channelName: string;
     targetAssetIds: string[];
     operationData: OperationData;
-    dataHash: string;
-    dataHashes: string[];
-    description: string;
 }
 
 export interface OperationData {
     // CREATE_ASSET
-    initialAmount?: number;
-    initialLocation?: string;
+    amount?: number;
+    idLocal?: string;
+    dataHash?: string;
     
     // TRANSFER_ASSET
-    targetOwner?: string;
-    externalId?: string;
+    newOwner?: string;
     
     // SPLIT_ASSET
-    splitAmounts?: number[];
+    amounts?: number[];
     
     // TRANSFORM_ASSET
     newAssetId?: string;
     
     // Common
-    newLocation?: string;
     newAmount?: number;
+    newIdLocal?: string;
+    newDataHash?: string;
 }
