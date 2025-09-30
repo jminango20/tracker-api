@@ -1,91 +1,70 @@
 import { Request, Response } from 'express';
-import { keccak256, toHex } from 'viem';
 import { AssetHistoryService } from '../services/assetHistoryService';
-import { ResponseHelper } from '../utils/responseHelper';
-import { 
-    AssetHistoryQuery, 
-    HistoryQueryType,
-    HISTORY_QUERY_LIMITS
-} from '../types/assetHistoryTypes';
 
 export class AssetHistoryController {
-    private assetHistoryService: AssetHistoryService;
+  private assetHistoryService: AssetHistoryService;
 
-    constructor() {
-        this.assetHistoryService = new AssetHistoryService();
+  constructor() {
+    this.assetHistoryService = new AssetHistoryService();
+  }
+
+  /**
+   * POST /asset-history/direct
+   * Body: { assetId: string }
+   */
+  async getDirectHistory(req: Request, res: Response) {
+    try {
+      const { assetId } = req.body;
+
+      if (!assetId) {
+        return res.status(400).json({
+          success: false,
+          message: 'assetId é obrigatório no body',
+        });
+      }
+
+      const result = await this.assetHistoryService.getDirectHistory(assetId);
+
+      return res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error: any) {
+      console.error('Erro ao buscar histórico direto:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Erro ao buscar histórico direto',
+      });
     }
+  }
 
-    /**
-     * Obter histórico completo de um asset
-     * POST /api/assets/history
-     */
-    async getAssetHistory(req: Request, res: Response) {
-        try {
-            const { assetId, channelName,type, fromDate, toDate, operations, maxDepth, limit, offset } = req.body;
+  /**
+   * POST /asset-history/indirect
+   * Body: { assetId: string }
+   */
+  async getIndirectHistory(req: Request, res: Response) {
+    try {
+      const { assetId } = req.body;
 
-            // Validações básicas
-            if (!assetId || typeof assetId !== 'string') {
-                return ResponseHelper.sendValidationError(res, 'assetId é obrigatório e deve ser uma string');
-            }
+      if (!assetId) {
+        return res.status(400).json({
+          success: false,
+          message: 'assetId é obrigatório no body',
+        });
+      }
 
-            if (!type || !Object.values(HistoryQueryType).includes(type)) {
-                return ResponseHelper.sendValidationError(res, 'type é obrigatório e deve ser DIRECT ou INDIRECT');
-            }
+      const result = await this.assetHistoryService.getIndirectHistory(assetId);
 
-            console.log(`Requisição de histórico: ${assetId} (${type})`);
-
-            // Construir query
-            const query: AssetHistoryQuery = {
-                assetId: assetId.trim(),
-                channelName: keccak256(toHex(channelName.trim())),
-                type: type as HistoryQueryType,
-                fromDate: fromDate ? new Date(fromDate) : undefined,
-                toDate: toDate ? new Date(toDate) : undefined,
-                operations: operations || undefined,
-                includeInactive: false,
-                maxDepth: maxDepth || 5,
-                limit: Math.min(limit || HISTORY_QUERY_LIMITS.DEFAULT_LIMIT, HISTORY_QUERY_LIMITS.MAX_RESULTS),
-                offset: offset || 0
-            };
-
-            const result = await this.assetHistoryService.getAssetHistory(query);
-
-            if (result.success) {
-                return ResponseHelper.sendSuccess(res, result.data, result.message);
-            } else {
-                return ResponseHelper.sendError(res, result.error!, 400);
-            }
-
-        } catch (error) {
-            console.error('Erro no controller getAssetHistory:', error);
-            return ResponseHelper.sendServerError(res);
-        }
+      return res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error: any) {
+      console.error('Erro ao buscar histórico indireto:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Erro ao buscar histórico indireto',
+      });
     }
-
-    /**
-     * Verificar se um asset existe
-     * GET /api/assets/:assetId/exists
-     */
-    async checkAssetExists(req: Request, res: Response) {
-        try {
-            const { assetId } = req.params;
-
-            if (!assetId || typeof assetId !== 'string') {
-                return ResponseHelper.sendValidationError(res, 'assetId é obrigatório');
-            }
-
-            console.log(`✓ Verificando existência: ${assetId}`);
-
-            const exists = await this.assetHistoryService.assetExists(assetId.trim());
-
-            return ResponseHelper.sendSuccess(res, {
-                assetId: assetId.trim(),
-                exists
-            }, exists ? 'Asset encontrado' : 'Asset não encontrado');
-
-        } catch (error) {
-            console.error('Erro no controller checkAssetExists:', error);
-            return ResponseHelper.sendServerError(res);
-        }
-    }
+  }
 }

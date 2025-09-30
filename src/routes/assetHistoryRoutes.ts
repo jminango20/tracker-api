@@ -5,15 +5,21 @@ const router = Router();
 const assetHistoryController = new AssetHistoryController();
 
 /**
- * POST /api/assets/history
- * Obter histórico completo de um asset
+ * POST /assetHistory/direct
+ * Body: { assetId: string }
+ * Retorna: Histórico do asset + todos os ancestrais
  */
-router.post('/history', assetHistoryController.getAssetHistory.bind(assetHistoryController));
+router.post('/direct', (req, res) => {
+  assetHistoryController.getDirectHistory(req, res);
+});
 
 /**
- * GET /api/assets/:assetId/exists
- * Verificar se um asset existe
+ * POST /assetHistory/indirect
+ * Body: { assetId: string }
+ * Retorna: Histórico completo (asset + ancestrais + descendentes + irmãos)
  */
-router.get('/:assetId/exists', assetHistoryController.checkAssetExists.bind(assetHistoryController));
+router.post('/indirect', (req, res) => {
+  assetHistoryController.getIndirectHistory(req, res);
+});
 
 export default router;

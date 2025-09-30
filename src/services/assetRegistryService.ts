@@ -6,7 +6,8 @@ import { ApiResponse } from '../types/apiTypes';
 import { 
     AssetOperation, 
     AssetStatus, 
-    Asset
+    BasicAsset,
+    AssetDetails
 } from '../types/assetRegistryTypes';
 import { ContractErrorHandler } from '../errors/contractErrorHandler';
 
@@ -47,7 +48,7 @@ export class AssetRegistryService extends BlockchainService {
     }
 
     // Obter asset
-    async getAsset(channelName: string, assetId: string): Promise<ApiResponse<Asset>> {
+    async getAsset(channelName: string, assetId: string): Promise<ApiResponse<BasicAsset>> {
         try {
             console.log(`Buscando asset: ${assetId} no canal: ${channelName}`);
 
@@ -61,37 +62,63 @@ export class AssetRegistryService extends BlockchainService {
                 assetId
             ]) as any;
 
-            const asset: Asset = {
+            const basicAsset: BasicAsset = {
                 assetId: result.assetId,
                 channelName: channelName,
                 owner: result.owner as string,
-                location: result.location as string,
                 amount: Number(result.amount),
-                dataHash: result.dataHash as string,
+                idLocal: result.idLocal as string,
                 status: this.getStatusName(Number(result.status) as AssetStatus),
                 operation: this.getOperationName(Number(result.operation) as AssetOperation),
-                createdAt: result.createdAt.toString(),
-                lastUpdated: result.lastUpdated.toString(),
-                groupedAssets: result.groupedAssets as string[],
-                groupedBy: result.groupedBy as string,
-                originOwner: result.originOwner as string,
-                externalId: result.externalId as string,
-                parentAssetId: result.parentAssetId as string,
-                transformationId: result.transformationId as string,
-                childAssets: result.childAssets as string[]
+                createdAt: Number(result.createdAt),
+                lastUpdated: Number(result.lastUpdated)
             };
 
-            console.log(`Asset encontrado - status: ${asset.status}, action: ${asset.operation}`);
+            console.log(`Asset encontrado - status: ${basicAsset.status}, operation: ${basicAsset.operation}`);
 
             return {
                 success: true,
-                data: asset,
+                data: basicAsset,
                 message: 'Asset obtido com sucesso'
             };
 
         } catch (error) {
             const contractError = ContractErrorHandler.handleContractError(error as Error);
             const errorInfo = contractError || this.handleBlockchainError(error, 'obter processo');
+            
+            return {
+                success: false,
+                error: errorInfo.message
+            };
+        }
+    }
+
+    // Obter asset com detalhes
+    async getAssetDetails(channelName: string, assetId: string): Promise<ApiResponse<AssetDetails>> {
+        try {
+            console.log(`Buscando detalhes do asset: ${assetId} no canal: ${channelName}`);
+
+            await this.ensureContractAddress();
+
+            const contract = this.getReadContract();
+            const channelHash = this.stringToBytes32(channelName);
+
+            const result = await contract.read.getAsset([
+                channelHash,
+                assetId
+            ]) as any;
+
+            const assetDetails = this.formatAssetDetails(result, channelName);
+
+            return {
+                success: true,
+                data: assetDetails as AssetDetails,
+                message: 'Detalhes do asset consultados com sucesso'
+            };
+
+        } catch (error) {
+            const contractError = ContractErrorHandler.handleContractError(error as Error);
+            const errorInfo = contractError || this.handleBlockchainError(error, 'consultar detalhes do asset');
             
             return {
                 success: false,
@@ -127,5 +154,59 @@ export class AssetRegistryService extends BlockchainService {
             case AssetStatus.INACTIVE: return 'INACTIVE';
             default: return 'UNKNOWN';
         }
+    }
+
+    private formatAssetDetails(result: any, channelName: string): Partial<AssetDetails> {
+        const assetDetails: AssetDetails = {
+            assetId: result.assetId,
+            channelName: channelName,
+            owner: result.owner as string,
+            amount: Number(result.amount),
+            idLocal: result.idLocal as string,
+            status: this.getStatusName(Number(result.status) as AssetStatus),
+            operation: this.getOperationName(Number(result.operation) as AssetOperation),
+            createdAt: Number(result.createdAt),
+            lastUpdated: Number(result.lastUpdated),
+            dataHash: result.dataHash as string,
+            originOwner: result.originOwner as string,
+            groupedBy: result.groupedBy as string,
+            groupedAssetsId: (result.groupedAssets || []).map((id: any) => id.toString()),
+            parentAssetId: result.parentAssetId as string,
+            transformationId: result.transformationId as string
+        };
+
+        const cleaned: Partial<AssetDetails> = {};
+        
+        // Campos obrigatórios
+        cleaned.assetId = assetDetails.assetId;
+        cleaned.channelName = assetDetails.channelName;
+        cleaned.owner = assetDetails.owner;
+        cleaned.amount = assetDetails.amount;
+        cleaned.idLocal = assetDetails.idLocal;
+        cleaned.status = assetDetails.status;
+        cleaned.operation = assetDetails.operation;
+        cleaned.createdAt = assetDetails.createdAt;
+        cleaned.lastUpdated = assetDetails.lastUpdated;
+        cleaned.dataHash = assetDetails.dataHash;
+        cleaned.originOwner = assetDetails.originOwner;
+
+        // Campos opcionais
+        if (assetDetails.groupedBy && !assetDetails.groupedBy.startsWith('0x0000000000000000000000000000000000000000000000000000000000000000')) {
+            cleaned.groupedBy = assetDetails.groupedBy;
+        }
+
+        if (assetDetails.groupedAssetsId && assetDetails.groupedAssetsId.length > 0) {
+            cleaned.groupedAssetsId = assetDetails.groupedAssetsId;
+        }
+
+        if (assetDetails.parentAssetId && !assetDetails.parentAssetId.startsWith('0x0000000000000000000000000000000000000000000000000000000000000000')) {
+            cleaned.parentAssetId = assetDetails.parentAssetId;
+        }
+
+        if (assetDetails.transformationId && !assetDetails.transformationId.startsWith('0x0000000000000000000000000000000000000000000000000000000000000000')) {
+            cleaned.transformationId = assetDetails.transformationId;
+        }
+
+        return cleaned;
     }
 }
