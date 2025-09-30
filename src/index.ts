@@ -12,7 +12,9 @@ import transactionDetailRoutes from './routes/transactionRoutes';
 import assetHistoryRoutes from './routes/assetHistoryRoutes';
 import { config } from './config/app';
 import { checkConnection } from './config/blockchain';
-import { EventListenerService } from './services/events/eventListenerService';
+import { IndexerService } from './services/events/indexerService'; // NOVO
+import { AddressDiscoveryService } from './services/addressDiscoveryService'; // SEU SERVIÇO
+
 
 const app = express();
 
@@ -70,7 +72,7 @@ async function startServer() {
     }
 
     // Se conectou, inicia o servidor
-    app.listen(config.server.port, () => {
+    app.listen(config.server.port, async () => {
       console.log('\nServidor iniciado!');
       console.log(`Porta: ${config.server.port}`);
       console.log(`URL: http://localhost:${config.server.port}`);
@@ -86,15 +88,25 @@ async function startServer() {
       console.log(' - Transaction Details: /txHash/*');
       console.log('\n');
 
-      const eventListener = new EventListenerService();
         try {
-          console.log('1. Inicializando EventListener...');
-          eventListener.initialize();
-          
-          console.log('2. Iniciando monitoramento de eventos...');
-          eventListener.startListening();
-          
-          console.log('EventListener ativo - capturando eventos da blockchain');
+          const addressDiscovery = new AddressDiscoveryService();
+          const indexer = new IndexerService(addressDiscovery);
+
+          await indexer.start();
+          console.log('Indexer ativo - processando eventos da blockchain\n');
+
+          // Graceful shutdown
+          process.on('SIGINT', async () => {
+            console.log('\nParando serviços...');
+            await indexer.stop();
+            process.exit(0);
+          });
+
+          process.on('SIGTERM', async () => {
+            console.log('\nParando serviços...');
+            await indexer.stop();
+            process.exit(0);
+          });
           
         } catch (error) {
           console.error('Erro ao iniciar EventListener:', error);
