@@ -20,22 +20,23 @@ export enum AssetStatus {
 }
 
 // Interfaces
-export interface Asset {
+export interface BasicAsset {
     assetId: string;
     channelName: string;
     owner: string;
-    location: string, 
     amount: number;
-    dataHash: string;
+    idLocal: string;
     status: string;
     operation: string;
-    createdAt: string;
-    lastUpdated: string;
-    groupedAssets: string[];    
-    groupedBy: string;
+    createdAt: number;
+    lastUpdated: number;
+}
+
+export interface AssetDetails extends BasicAsset {
+    dataHash: string;
     originOwner: string;
-    externalId: string;
-    parentAssetId: string;   
+    groupedBy: string;
+    groupedAssetsId: string[];
+    parentAssetId: string;
     transformationId: string;
-    childAssets: string[];  
 }
