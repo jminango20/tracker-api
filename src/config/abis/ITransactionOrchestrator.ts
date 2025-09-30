@@ -37,110 +37,6 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
       "type": "error"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "assetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "operator",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "enum IAssetRegistry.AssetOperation",
-          "name": "operation",
-          "type": "uint8"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "blockNumber",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetModified",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "processId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "natureId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "stageId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "operator",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32[]",
-          "name": "affectedAssets",
-          "type": "bytes32[]"
-        },
-        {
-          "indexed": false,
-          "internalType": "enum IAssetRegistry.AssetOperation",
-          "name": "operation",
-          "type": "uint8"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "blockNumber",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "OperationExecuted",
-      "type": "event"
-    },
-    {
       "inputs": [],
       "name": "pauseTransactions",
       "outputs": [],
@@ -187,27 +83,27 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
               "components": [
                 {
                   "internalType": "uint256",
-                  "name": "initialAmount",
+                  "name": "amount",
                   "type": "uint256"
                 },
                 {
                   "internalType": "string",
-                  "name": "initialLocation",
+                  "name": "idLocal",
                   "type": "string"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "dataHash",
+                  "type": "bytes32"
                 },
                 {
                   "internalType": "address",
-                  "name": "targetOwner",
+                  "name": "newOwner",
                   "type": "address"
                 },
                 {
-                  "internalType": "string",
-                  "name": "externalId",
-                  "type": "string"
-                },
-                {
                   "internalType": "uint256[]",
-                  "name": "splitAmounts",
+                  "name": "amounts",
                   "type": "uint256[]"
                 },
                 {
@@ -216,34 +112,24 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
                   "type": "bytes32"
                 },
                 {
-                  "internalType": "string",
-                  "name": "newLocation",
-                  "type": "string"
-                },
-                {
                   "internalType": "uint256",
                   "name": "newAmount",
                   "type": "uint256"
+                },
+                {
+                  "internalType": "string",
+                  "name": "newIdLocal",
+                  "type": "string"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "newDataHash",
+                  "type": "bytes32"
                 }
               ],
               "internalType": "struct ITransactionOrchestrator.OperationData",
               "name": "operationData",
               "type": "tuple"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "dataHash",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "dataHashes",
-              "type": "bytes32[]"
-            },
-            {
-              "internalType": "string",
-              "name": "description",
-              "type": "string"
             }
           ],
           "internalType": "struct ITransactionOrchestrator.TransactionRequest",
@@ -270,11 +156,6 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
         }
       ],
       "name": "AmountConservationViolated",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "ArrayLengthMismatch",
       "type": "error"
     },
     {
@@ -353,12 +234,13 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
       "type": "error"
     },
     {
-      "inputs": [],
-      "name": "EmptyAmountsArray",
-      "type": "error"
-    },
-    {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "channelName",
+          "type": "bytes32"
+        }
+      ],
       "name": "EmptyLocation",
       "type": "error"
     },
@@ -366,15 +248,9 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
       "inputs": [
         {
           "internalType": "bytes32",
-          "name": "groupAssetId",
+          "name": "channelName",
           "type": "bytes32"
-        }
-      ],
-      "name": "GroupAssetAlreadyExists",
-      "type": "error"
-    },
-    {
-      "inputs": [
+        },
         {
           "internalType": "uint256",
           "name": "provided",
@@ -392,6 +268,11 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
     {
       "inputs": [
         {
+          "internalType": "bytes32",
+          "name": "channelName",
+          "type": "bytes32"
+        },
+        {
           "internalType": "uint256",
           "name": "provided",
           "type": "uint256"
@@ -403,6 +284,22 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
         }
       ],
       "name": "InsufficientSplitParts",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "channelName",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "InvalidAmount",
       "type": "error"
     },
     {
@@ -435,12 +332,17 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
     {
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
+          "internalType": "bytes32",
+          "name": "channelName",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
         }
       ],
-      "name": "InvalidSplitAmount",
+      "name": "InvalidOwnerAddress",
       "type": "error"
     },
     {
@@ -457,6 +359,27 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
         }
       ],
       "name": "MixedOwnershipNotAllowed",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "channelName",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "assetId",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "NotAllowedTransferToSameOwner",
       "type": "error"
     },
     {
@@ -513,59 +436,6 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
       "type": "error"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "provided",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "maximum",
-          "type": "uint256"
-        }
-      ],
-      "name": "TooManyAssetsForDuplicateCheck",
-      "type": "error"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "assetId",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address",
-          "name": "newOwner",
-          "type": "address"
-        }
-      ],
-      "name": "TransferToSameOwner",
-      "type": "error"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "current",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "maximum",
-          "type": "uint256"
-        }
-      ],
-      "name": "TransformationChainTooDeep",
-      "type": "error"
-    },
-    {
       "anonymous": false,
       "inputs": [
         {
@@ -581,93 +451,37 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
           "type": "bytes32"
         },
         {
+          "indexed": true,
+          "internalType": "uint8",
+          "name": "operation",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "status",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
           "indexed": false,
           "internalType": "bytes32[]",
-          "name": "componentAssets",
+          "name": "relatedAssetIds",
           "type": "bytes32[]"
         },
         {
           "indexed": false,
           "internalType": "uint256[]",
-          "name": "componentAmounts",
+          "name": "relatedAmounts",
           "type": "uint256[]"
         },
         {
           "indexed": false,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetComposition",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "assetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "location",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetCreated",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "assetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
           "internalType": "address",
           "name": "previousOwner",
           "type": "address"
@@ -681,416 +495,23 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
         {
           "indexed": false,
           "internalType": "string",
-          "name": "newLocation",
+          "name": "idLocal",
           "type": "string"
         },
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "timestamp",
+          "name": "amount",
           "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "dataHash",
+          "type": "bytes32"
         }
       ],
-      "name": "AssetCustodyChanged",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "assetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "enum IAssetRegistry.AssetOperation",
-          "name": "lastOperation",
-          "type": "uint8"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetInactivated",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "childAssetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "parentAssetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint8",
-          "name": "relationshipType",
-          "type": "uint8"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetLineage",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "originalAssetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32[]",
-          "name": "newAssetIds",
-          "type": "bytes32[]"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256[]",
-          "name": "amounts",
-          "type": "uint256[]"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetSplit",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "assetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "previousLocation",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "newLocation",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "previousAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "newAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetStateChanged",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "assetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "fromOwner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "toOwner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "previousLocation",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "newLocation",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "previousAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "newAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetTransferred",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "originalAssetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "newAssetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetTransformed",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "assetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "newAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "newLocation",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetUpdated",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32[]",
-          "name": "originalAssetIds",
-          "type": "bytes32[]"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "groupAssetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "totalAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetsGrouped",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "channelName",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "groupAssetId",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32[]",
-          "name": "originalAssetIds",
-          "type": "bytes32[]"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        }
-      ],
-      "name": "AssetsUngrouped",
+      "name": "AssetOperationExecuted",
       "type": "event"
     },
     {
@@ -1108,24 +529,19 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
               "type": "bytes32"
             },
             {
-              "internalType": "string",
-              "name": "location",
-              "type": "string"
-            },
-            {
               "internalType": "uint256",
               "name": "amount",
               "type": "uint256"
             },
             {
+              "internalType": "string",
+              "name": "idLocal",
+              "type": "string"
+            },
+            {
               "internalType": "bytes32",
               "name": "dataHash",
               "type": "bytes32"
-            },
-            {
-              "internalType": "string",
-              "name": "externalId",
-              "type": "string"
             }
           ],
           "internalType": "struct IAssetRegistry.CreateAssetInput",
@@ -1176,19 +592,24 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
               "type": "address"
             },
             {
-              "internalType": "string",
-              "name": "location",
-              "type": "string"
-            },
-            {
               "internalType": "uint256",
               "name": "amount",
               "type": "uint256"
             },
             {
+              "internalType": "string",
+              "name": "idLocal",
+              "type": "string"
+            },
+            {
               "internalType": "bytes32",
               "name": "dataHash",
               "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "originOwner",
+              "type": "address"
             },
             {
               "internalType": "enum IAssetRegistry.AssetStatus",
@@ -1201,16 +622,6 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
               "type": "uint8"
             },
             {
-              "internalType": "uint256",
-              "name": "createdAt",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "lastUpdated",
-              "type": "uint256"
-            },
-            {
               "internalType": "bytes32[]",
               "name": "groupedAssets",
               "type": "bytes32[]"
@@ -1219,16 +630,6 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
               "internalType": "bytes32",
               "name": "groupedBy",
               "type": "bytes32"
-            },
-            {
-              "internalType": "address",
-              "name": "originOwner",
-              "type": "address"
-            },
-            {
-              "internalType": "string",
-              "name": "externalId",
-              "type": "string"
             },
             {
               "internalType": "bytes32",
@@ -1244,6 +645,16 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
               "internalType": "bytes32[]",
               "name": "childAssets",
               "type": "bytes32[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "createdAt",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "lastUpdated",
+              "type": "uint256"
             }
           ],
           "internalType": "struct IAssetRegistry.Asset",
@@ -1275,7 +686,7 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "location",
+              "name": "newIdLocal",
               "type": "string"
             },
             {
@@ -1315,13 +726,8 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "finalLocation",
+              "name": "newIdLocal",
               "type": "string"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "finalDataHash",
-              "type": "bytes32"
             }
           ],
           "internalType": "struct IAssetRegistry.InactivateAssetInput",
@@ -1360,13 +766,8 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "location",
+              "name": "newIdLocal",
               "type": "string"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "dataHashes",
-              "type": "bytes32[]"
             }
           ],
           "internalType": "struct IAssetRegistry.SplitAssetInput",
@@ -1405,23 +806,13 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newLocation",
+              "name": "newIdLocal",
               "type": "string"
-            },
-            {
-              "internalType": "uint256",
-              "name": "newAmount",
-              "type": "uint256"
             },
             {
               "internalType": "bytes32",
               "name": "dataHash",
               "type": "bytes32"
-            },
-            {
-              "internalType": "string",
-              "name": "externalId",
-              "type": "string"
             }
           ],
           "internalType": "struct IAssetRegistry.TransferAssetInput",
@@ -1460,7 +851,7 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newLocation",
+              "name": "newIdLocal",
               "type": "string"
             },
             {
@@ -1500,13 +891,8 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "location",
+              "name": "newIdLocal",
               "type": "string"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "dataHash",
-              "type": "bytes32"
             }
           ],
           "internalType": "struct IAssetRegistry.UngroupAssetsInput",
@@ -1539,14 +925,14 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
               "type": "bytes32"
             },
             {
-              "internalType": "string",
-              "name": "newLocation",
-              "type": "string"
-            },
-            {
               "internalType": "uint256",
               "name": "newAmount",
               "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "newIdLocal",
+              "type": "string"
             },
             {
               "internalType": "bytes32",
