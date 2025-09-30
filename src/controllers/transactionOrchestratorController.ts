@@ -13,45 +13,22 @@ export class TransactionOrchestratorController {
     // Submeter transação
     async submitTransaction(req: Request, res: Response) {
         try {
-            const transactionRequest = req.body;
+            const requestBody = req.body;
             const privateKey = req.headers['x-private-key'] as string;
+
+            if (!this.validateBasicStructure(requestBody)) {
+                return ResponseHelper.sendValidationError(res, 'Estrutura JSON inválida');
+            }
 
             const keyValidation = ContractValidators.validatePrivateKey(privateKey);
             if (!keyValidation.isValid) {
                 return ResponseHelper.sendValidationError(res, keyValidation.error!);
             }
 
-            const requestValidation = ContractValidators.validateTransactionRequest(transactionRequest);
-            if (!requestValidation.isValid) {
-                return ResponseHelper.sendValidationError(res, requestValidation.error!);
-            }
-
-            console.log(`Requisição para submeter transação: ${transactionRequest.processId} nature: ${transactionRequest.natureId} stage: ${transactionRequest.stageId}`);
-
-            // Preparar dados da transação
-            const request = {
-                processId: transactionRequest.processId.trim(),
-                natureId: transactionRequest.natureId.trim(),
-                stageId: transactionRequest.stageId.trim(),
-                channelName: transactionRequest.channelName.trim(),
-                targetAssetIds: transactionRequest.targetAssetIds || [],
-                operationData: {
-                    initialAmount: transactionRequest.operationData?.initialAmount,
-                    initialLocation: transactionRequest.operationData?.initialLocation?.trim(),
-                    targetOwner: transactionRequest.operationData?.targetOwner?.trim(),
-                    externalId: transactionRequest.operationData?.externalId?.trim(),
-                    splitAmounts: transactionRequest.operationData?.splitAmounts || [],
-                    newAssetId: transactionRequest.operationData?.newAssetId?.trim(),
-                    newLocation: transactionRequest.operationData?.newLocation?.trim(),
-                    newAmount: transactionRequest.operationData?.newAmount
-                },
-                dataHash: transactionRequest.dataHash?.trim() || '',
-                dataHashes: transactionRequest.dataHashes || [],
-                description: transactionRequest.description?.trim() || ''
-            };
+            console.log(`Requisição para operação: ${requestBody.process.stageId}`);
 
             const result = await this.transactionOrchestratorService.submitTransaction(
-                request,
+                requestBody,
                 privateKey
             );
 
@@ -65,5 +42,12 @@ export class TransactionOrchestratorController {
             console.error('Erro no controller submitTransaction:', error);
             return ResponseHelper.sendServerError(res);
         }
+    }
+
+    private validateBasicStructure(body: any): boolean {
+        return body.process?.processId && 
+            body.process?.natureId && 
+            body.process?.stageId && 
+            body.channel?.name;
     }
 }

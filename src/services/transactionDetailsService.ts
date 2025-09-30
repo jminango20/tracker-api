@@ -144,39 +144,6 @@ export class TransactionDetailsService {
         }
     }
 
-    async getTransactionEvents(txHash: `0x${string}`): Promise<ApiResponse<ParsedEvent[]>> {
-        try {
-            console.log(`Buscando eventos da transação: ${txHash}`);
-
-            const client = this.getPublicClient();
-            const receipt = await client.getTransactionReceipt({ hash: txHash });
-
-            if (!receipt) {
-                return {
-                    success: false,
-                    error: 'Transação não encontrada'
-                };
-            }
-
-            const events = await this.parseAllEvents(receipt.logs);
-
-            console.log(`${events.length} eventos encontrados`);
-
-            return {
-                success: true,
-                data: events,
-                message: `${events.length} eventos encontrados`
-            };
-
-        } catch (error) {
-            console.error('Erro ao buscar eventos da transação:', error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Erro desconhecido'
-            };
-        }
-    }
-
     private async parseAllEvents(logs: Log[]): Promise<ParsedEvent[]> {
         const events: ParsedEvent[] = [];
 

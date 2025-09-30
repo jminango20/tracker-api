@@ -1,4 +1,4 @@
-import { keccak256, toHex } from 'viem';
+import { keccak256, toHex, parseAbiItem, decodeEventLog } from 'viem';
 import { BlockchainService } from './base/blockchainService';
 import { AddressDiscoveryService } from './addressDiscoveryService';
 import { ProcessRegistryService } from './processRegistryService';
@@ -6,7 +6,6 @@ import { ITRANSACTION_ORCHESTRATOR_ABI } from '../config/abis/ITransactionOrches
 import { ApiResponse } from '../types/apiTypes';
 import { TransactionRequest } from '../types/transactionOrchestratorTypes';
 import { TransactionRequestValidator } from '../validators/transactionRequestValidator';
-import { EventParsingService } from '../utils/eventParsingService';
 import { ContractErrorHandler } from '../errors/contractErrorHandler';
 
 export class TransactionOrchestratorService extends BlockchainService {
@@ -61,16 +60,18 @@ export class TransactionOrchestratorService extends BlockchainService {
 
 
     // Método principal
-    async submitTransaction(request: TransactionRequest, privateKey: string): Promise<ApiResponse<any>> {
+    async submitTransaction(requestBody: any, privateKey: string): Promise<ApiResponse<any>> {
         try {
-            console.log(`Submetendo transação: ${request.processId} - action será validada dinamicamente`);
+            console.log(`Submetendo transação: ${requestBody.processId} - action será validada dinamicamente`);
+
+            const mappedRequest = this.mapToTransactionRequest(requestBody);
 
             // 1. Obter action do processo
             const processResult = await this.processRegistryService.getProcess(
-                request.channelName,
-                request.processId,
-                request.natureId,
-                request.stageId
+                requestBody.channel.name,
+                requestBody.process.processId,
+                requestBody.process.natureId,
+                requestBody.process.stageId
             );
 
             if (!processResult.success) {
@@ -88,8 +89,10 @@ export class TransactionOrchestratorService extends BlockchainService {
                 };
             }
 
+            console.log(`Submetendo transação: ${mappedRequest.processId} - action: ${action}`);
+
             // 2. Validação dinâmica baseada na action do processo
-            const validation = TransactionRequestValidator.validateByAction(action, request);
+            const validation = TransactionRequestValidator.validateByAction(action, mappedRequest);
             if (!validation.isValid) {
                 return {
                     success: false,
@@ -104,24 +107,33 @@ export class TransactionOrchestratorService extends BlockchainService {
 
             // 3. Preparar request para o contrato
             const contractRequest = {
-                processId: this.stringToBytes32(request.processId),
-                natureId: this.stringToBytes32(request.natureId),
-                stageId: this.stringToBytes32(request.stageId),
-                channelName: this.stringToBytes32(request.channelName),
-                targetAssetIds: request.targetAssetIds,
+                processId: this.stringToBytes32(mappedRequest.processId),
+                natureId: this.stringToBytes32(mappedRequest.natureId),
+                stageId: this.stringToBytes32(mappedRequest.stageId),
+                channelName: this.stringToBytes32(mappedRequest.channelName),
+                targetAssetIds: mappedRequest.targetAssetIds,
                 operationData: {
-                    initialAmount: request.operationData.initialAmount || 0,
-                    initialLocation: request.operationData.initialLocation || '',
-                    targetOwner: request.operationData.targetOwner || '0x0000000000000000000000000000000000000000',
-                    externalId: request.operationData.externalId || '',
-                    splitAmounts: request.operationData.splitAmounts || [],
-                    newAssetId: request.operationData.newAssetId ? this.stringToBytes32(request.operationData.newAssetId) : '0x0000000000000000000000000000000000000000000000000000000000000000',
-                    newLocation: request.operationData.newLocation || '',
-                    newAmount: request.operationData.newAmount || 0
+                    //CREATE_ASSET
+                    amount: mappedRequest.operationData.amount || 0,
+                    idLocal: mappedRequest.operationData.idLocal || '',
+                    dataHash: mappedRequest.operationData.dataHash || '',
+
+                    //TRANSFER_ASSET
+                    newOwner: mappedRequest.operationData.newOwner || '0x0000000000000000000000000000000000000000',
+                    
+                    // SPLIT_ASSET
+                    amounts: mappedRequest.operationData.amounts || [],
+                    
+                    // TRANSFORM_ASSET
+                    newAssetId: mappedRequest.operationData.newAssetId ? 
+                        this.stringToBytes32(mappedRequest.operationData.newAssetId) : 
+                        '0x0000000000000000000000000000000000000000000000000000000000000000',
+
+                    // COMMON FIELDS
+                    newAmount: mappedRequest.operationData.newAmount || 0,
+                    newIdLocal: mappedRequest.operationData.newIdLocal || '',
+                    newDataHash: mappedRequest.operationData.newDataHash || '',
                 },
-                dataHash: request.dataHash ? this.stringToBytes32(request.dataHash) : '0x0000000000000000000000000000000000000000000000000000000000000000',
-                dataHashes: request.dataHashes.map(hash => this.stringToBytes32(hash)),
-                description: request.description || ''
             };
 
             console.log('Enviando transação para o contrato...');
@@ -133,20 +145,21 @@ export class TransactionOrchestratorService extends BlockchainService {
             
             const receipt = await this.waitForTransaction(txHash);
 
-            const eventParser = new EventParsingService(this.cachedAssetRegistryAddress!);
-
-            const parsedData = eventParser.parseTransactionEvents(receipt, action);
+            const assetIds = this.extractAssetIdsFromReceipt(receipt, action);
 
             const responseData = {
-                processId: request.processId,
-                natureId: request.natureId,
-                stageId: request.stageId,
-                channelName: request.channelName,
-                process: action,
-                transactionHash: txHash,
-                assets: parsedData.events,                
-                blockNumber: receipt.blockNumber?.toString() || '0',
-                gasUsed: receipt.gasUsed?.toString() || '0',                
+                transaction: {
+                    hash: txHash,
+                    blockNumber: receipt.blockNumber?.toString() || '0',
+                    gasUsed: receipt.gasUsed?.toString() || '0' 
+                },
+
+                operation: {
+                    type: action,
+                    success: true,
+                    assetsCreated: assetIds.created,
+                    assetsModified: assetIds.modified
+                }
             };
 
             return {
@@ -168,4 +181,96 @@ export class TransactionOrchestratorService extends BlockchainService {
     public clearAddressCache(): void {
         this.cachedContractAddress = null;
     }
+
+    private mapToTransactionRequest(requestBody: any): TransactionRequest {
+        const dataHash = this.generateDataHash(requestBody.data);
+        const newDataHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        
+        return {
+            processId: requestBody.process?.processId?.trim() || '',
+            natureId: requestBody.process?.natureId?.trim() || '',
+            stageId: requestBody.process?.stageId?.trim() || '',
+            channelName: requestBody.channel?.name?.trim() || '',
+            targetAssetIds: requestBody.asset?.assetIds || [], 
+            operationData: {
+                // CREATE_ASSET
+                amount: requestBody.asset?.amount || 0,
+                idLocal: requestBody.asset?.idLocal?.trim() || '',
+                dataHash: dataHash,
+                
+                // TRANSFER_ASSET  
+                newOwner: requestBody.owner?.ownerAddress?.trim() || '',
+                
+                // SPLIT_ASSET
+                amounts: requestBody.asset?.amounts || [],
+                
+                // TRANSFORM_ASSET
+                newAssetId: requestBody.transform?.newAssetId?.trim() || '',
+                
+                // Common fields
+                newAmount: requestBody.asset?.newAmount || 0,
+                newIdLocal: requestBody.asset?.newIdLocal?.trim() || '',
+                newDataHash: newDataHash
+            }
+        };
+    }
+
+    private generateDataHash(data: any[]): string {
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            return '';
+        }
+        
+        const dataString = JSON.stringify(data);
+        const hash = require('crypto').createHash('sha256').update(dataString).digest('hex');
+        return '0x' + hash;
+    }
+
+    private extractAssetIdsFromReceipt(receipt: any, action: string) {
+        const assetRegistryLogs = receipt.logs.filter((log: any) => 
+            log.address.toLowerCase() === this.cachedAssetRegistryAddress!.toLowerCase()
+        );
+
+        for (const log of assetRegistryLogs) {
+            try {
+                const assetOperationExecutedAbi = parseAbiItem(
+                    'event AssetOperationExecuted(bytes32 indexed channelName, bytes32 indexed assetId, uint8 operation, uint8 status, uint256 timestamp, bytes32[] relatedAssetIds, uint256[] relatedAmounts, address indexed owner, string idLocal, uint256 amount, bytes32 dataHash)'
+                );
+
+                const decoded = decodeEventLog({
+                    abi: [assetOperationExecutedAbi],
+                    data: log.data,
+                    topics: log.topics,
+                });
+
+                const args = decoded.args;
+
+                switch (action) {
+                    case 'CREATE_ASSET':
+                        return { created: [args.assetId], modified: [] };
+                    case 'UPDATE_ASSET':
+                        return { created: [], modified: [args.assetId] };
+                    case 'TRANSFER_ASSET':
+                        return { created: [], modified: [args.assetId] };
+                    case 'INACTIVATE_ASSET':
+                        return { created: [], modified: [args.assetId] };
+                    case 'SPLIT_ASSET':
+                        return { created: args.relatedAssetIds, modified: [args.assetId] };
+                    case 'GROUP_ASSET':
+                        return { created: [args.assetId], modified: args.relatedAssetIds };
+                    case 'TRANSFORM_ASSET':
+                        return { created: [args.assetId], modified: args.relatedAssetIds };
+                    case 'UNGROUP_ASSET':
+                        return { created: [], modified: [...args.relatedAssetIds, args.assetId] };
+                    default:
+                        return { created: [], modified: [] };
+                }
+            } catch (error) {
+                continue;
+            }
+        }
+    
+        return { created: [], modified: [] };
+    }
+
+    
 }

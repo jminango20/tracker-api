@@ -9,8 +9,4 @@ router.post('/details', async (req, res) => {
     await transactionController.getTransactionDetails(req, res);
 });
 
-router.post('/events', async (req, res) => {
-    await transactionController.getTransactionEvents(req, res);
-});
-
 export default router;
