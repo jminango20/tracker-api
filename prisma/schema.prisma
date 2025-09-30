@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -14,52 +13,117 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-//Criar o schema do banco de dados
-model AssetEvent {
-  id                Int    @id @default(autoincrement())
-  blockNumber       BigInt
-  transactionHash   String
-  logIndex          Int     // Para ordenação dentro da mesma tx
-
-  // Campos sempre presentes
-  eventName         String
-  channelName       String
-  timestamp         DateTime
-
-  // Asset IDs (principais)
-  primaryAssetId    String   // Asset principal
-  secondaryAssetId  String?  // Para relacionamento (parent, group, child, etc...)
-
-  // Dados estruturados comuns
-  owner             String?
-  operation         String? // CREATE, UPDATE, TRANSFER, TRANSFERIN, SPLIT, GROUP, UNGROUP, TRANSFORM, INACTIVATE
-
-  // Array para casos especiais (split, group)
-  relatedAssetIds   String[]  // IDs de assets relacionados
-  amounts           BigInt[]  // Quantidades de assets relacionados
-
-  // JSON para dados extras especificos
-  eventData         Json?     // Location, description, etc...
-
-  createdAt         DateTime @default(now())
-
-  @@index([primaryAssetId])
+model AssetOperationEvent {
+  id              Int       @id @default(autoincrement())
+  
+  // Dados do evento blockchain
+  channelName     String    @map("channel_name")
+  assetId         String    @map("asset_id")
+  operation       Int       // 0=CREATE, 1=UPDATE, etc.
+  status          Int       // 0=ACTIVE, 1=INACTIVE
+  blockTimestamp  BigInt    @map("block_timestamp")
+  relatedAssetIds String[]  @map("related_asset_ids")
+  relatedAmounts  String[]  @map("related_amounts") // String porque Decimal[] não existe
+  ownerAddress    String    @map("owner_address")
+  idLocal         String?   @map("id_local")
+  amount          String    // String para guardar BigInt sem perda
+  dataHash        String?   @map("data_hash")
+  
+  // Metadados transação
+  transactionHash String    @map("transaction_hash")
+  blockNumber     BigInt    @map("block_number")
+  logIndex        Int       @map("log_index")
+  
+  // Controle
+  processed       Boolean   @default(false)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  
+  // Relações
+  parentRelations AssetParentRelation[]
+  
+  @@unique([transactionHash, logIndex], map: "unique_tx_log")
+  @@index([assetId])
+  @@index([channelName])
   @@index([blockNumber])
-  @@index([eventName])
-  @@index([transactionHash])
-
-  @@unique([transactionHash, logIndex], name: "unique_event")
-
-  @@map("asset_events")
+  @@index([processed])
+  @@map("asset_operation_event")
 }
 
-// Tabela separada para tracking de blocos processados
+model Asset {
+  assetId         String   @id @map("asset_id")
+  channelName     String   @map("channel_name")
+  
+  // Estado atual
+  ownerAddress    String   @map("owner_address")
+  amount          String   // String para BigInt
+  idLocal         String?  @map("id_local")
+  dataHash        String?  @map("data_hash")
+  status          Int      // 0=ACTIVE, 1=INACTIVE
+  
+  // Metadados
+  originOwner     String?  @map("origin_owner")
+  createdAt       DateTime @map("created_at")
+  lastUpdated     DateTime @map("last_updated")
+  
+  // Hierarquia (pai único)
+  parentAssetId   String?  @map("parent_asset_id")
+  parent          Asset?   @relation("AssetHierarchy", fields: [parentAssetId], references: [assetId], onDelete: NoAction, onUpdate: NoAction)
+  children        Asset[]  @relation("AssetHierarchy")
+  
+  // Relacionamentos múltiplos pais
+  asParent        AssetParentRelation[] @relation("ParentAsset")
+  asChild         AssetParentRelation[] @relation("ChildAsset")
+  
+  // Paths hierárquicos
+  asAncestor      AssetHierarchyPath[]  @relation("Ancestor")
+  asDescendant    AssetHierarchyPath[]  @relation("Descendant")
+  
+  @@index([channelName])
+  @@index([ownerAddress])
+  @@index([status])
+  @@index([parentAssetId])
+  @@map("asset")
+}
+
+model AssetParentRelation {
+  id                 Int      @id @default(autoincrement())
+  parentAssetId      String   @map("parent_asset_id")
+  childAssetId       String   @map("child_asset_id")
+  operationEventId   Int      @map("operation_event_id")
+  contributedAmount  String?  @map("contributed_amount")
+  createdAt          DateTime @default(now()) @map("created_at")
+  
+  parent             Asset              @relation("ParentAsset", fields: [parentAssetId], references: [assetId])
+  child              Asset              @relation("ChildAsset", fields: [childAssetId], references: [assetId])
+  operationEvent     AssetOperationEvent @relation(fields: [operationEventId], references: [id])
+  
+  @@unique([parentAssetId, childAssetId, operationEventId])
+  @@index([parentAssetId])
+  @@index([childAssetId])
+  @@map("asset_parent_relation")
+}
+
+model AssetHierarchyPath {
+  id           Int      @id @default(autoincrement())
+  ancestorId   String   @map("ancestor_id")
+  descendantId String   @map("descendant_id")
+  depth        Int
+  path         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  ancestor     Asset    @relation("Ancestor", fields: [ancestorId], references: [assetId])
+  descendant   Asset    @relation("Descendant", fields: [descendantId], references: [assetId])
+  
+  @@unique([ancestorId, descendantId, path])
+  @@index([descendantId, depth])
+  @@index([ancestorId])
+  @@map("asset_hierarchy_path")
+}
+
 model BlockTracker {
-  id              Int      @id @default(autoincrement())
-  lastBlock       BigInt
-  serviceName     String   @default("EventListener")
-  lastUpdated     DateTime @default(now()) @updatedAt
+  id         String   @id
+  lastBlock  BigInt   @map("last_block")
+  updatedAt  DateTime @default(now()) @map("updated_at")
   
   @@map("block_tracker")
 }

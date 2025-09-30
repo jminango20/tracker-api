@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node src/index.ts"
+    "dev": "ts-node src/index.ts",
+    "db:fresh": "rm -rf prisma/migrations && npx prisma migrate dev --name init && npx prisma generate",
+    "db:push": "npx prisma db push",
+    "db:generate": "npx prisma migrate reset --force"
   },
   "keywords": [],
   "author": "",
