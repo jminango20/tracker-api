@@ -1,2 +1,2 @@
 export * from './blockchainTypes';
-export { AssetOperation, AssetStatus } from './blockchainTypes';
+export * from './assetRegistryTypes';

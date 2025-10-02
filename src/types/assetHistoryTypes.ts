@@ -3,19 +3,6 @@ export enum HistoryQueryType {
     INDIRECT = 'INDIRECT'  // Toda a árvore genealógica
 }
 
-export interface AssetHistoryQuery {
-    assetId: string;
-    type: HistoryQueryType;
-    
-    // Filtros opcionais
-    fromDate?: Date;
-    toDate?: Date;
-    operations?: number[];       // 0, 1, 2, 3, 4, 5, 6, 7, 8
-    maxDepth?: number;           // Profundidade máxima da árvore    
-    // Paginação
-    limit?: number;
-}
-
 export interface AssetHistoryEvent {
     // Identificação do evento
     id: number;
@@ -33,30 +20,13 @@ export interface AssetHistoryEvent {
     amount: string;           
 }
 
-export interface AssetGenealogy {
-    parents: string[];  // Assets que geraram este         
-    children: string[]; // Assets gerados por este         
-    groups: string[];   // Groups relacionados        
-    transformations: {
-        from: string[];         // Transformado de
-        to: string[];           // Transformado para
-    };
-    maxDepth: number;
-}
-
-
 export interface AssetHistoryResponse {
     // Identificação
     assetId: string;
-    type: HistoryQueryType;
-    
-    // Eventos encontrados
-    events: AssetHistoryEvent[];
-
-    // Genealogia
-    genealogy?: AssetGenealogy;
-    
-    executionTime: number;    
+    mode: HistoryQueryType;
+    description: string;
+    totalEvents: number;
+    events: AssetHistoryEvent[];   
 }
 
 

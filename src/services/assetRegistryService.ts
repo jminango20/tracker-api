@@ -8,7 +8,7 @@ import {
     AssetStatus, 
     BasicAsset,
     AssetDetails
-} from '../types/assetRegistryTypes';
+} from '../types/index';
 import { ContractErrorHandler } from '../errors/contractErrorHandler';
 
 
