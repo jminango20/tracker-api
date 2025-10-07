@@ -135,9 +135,9 @@ export const IASSET_REGISTRY_ABI = [
           "type": "uint256"
         },
         {
-          "internalType": "uint8",
+          "internalType": "uint256",
           "name": "minimum",
-          "type": "uint8"
+          "type": "uint256"
         }
       ],
       "name": "InsufficientSplitParts",
@@ -458,11 +458,6 @@ export const IASSET_REGISTRY_ABI = [
               "type": "bytes32"
             },
             {
-              "internalType": "address",
-              "name": "originOwner",
-              "type": "address"
-            },
-            {
               "internalType": "enum IAssetRegistry.AssetStatus",
               "name": "status",
               "type": "uint8"
@@ -537,7 +532,7 @@ export const IASSET_REGISTRY_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
             },
             {
@@ -577,8 +572,13 @@ export const IASSET_REGISTRY_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "dataHash",
+              "type": "bytes32"
             }
           ],
           "internalType": "struct IAssetRegistry.InactivateAssetInput",
@@ -617,8 +617,13 @@ export const IASSET_REGISTRY_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "dataHash",
+              "type": "bytes32"
             }
           ],
           "internalType": "struct IAssetRegistry.SplitAssetInput",
@@ -657,7 +662,7 @@ export const IASSET_REGISTRY_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
             },
             {
@@ -702,13 +707,13 @@ export const IASSET_REGISTRY_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
             },
             {
-              "internalType": "uint256",
-              "name": "newAmount",
-              "type": "uint256"
+              "internalType": "bytes32",
+              "name": "dataHash",
+              "type": "bytes32"
             }
           ],
           "internalType": "struct IAssetRegistry.TransformAssetInput",
@@ -742,7 +747,7 @@ export const IASSET_REGISTRY_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
             }
           ],
@@ -777,12 +782,12 @@ export const IASSET_REGISTRY_ABI = [
             },
             {
               "internalType": "uint256",
-              "name": "newAmount",
+              "name": "amount",
               "type": "uint256"
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
             },
             {

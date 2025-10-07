@@ -1,5 +1,5 @@
 import { prisma } from '../database/prismaClient';
-import { AssetEventForDatabase, AssetOperation } from '../types/blockchainTypes';
+import { AssetEventForDatabase } from '../types/blockchainTypes';
 
 export class EventRepository {
 

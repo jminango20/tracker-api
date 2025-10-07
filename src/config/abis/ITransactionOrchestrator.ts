@@ -110,21 +110,6 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
                   "internalType": "bytes32",
                   "name": "newAssetId",
                   "type": "bytes32"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "newAmount",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "string",
-                  "name": "newIdLocal",
-                  "type": "string"
-                },
-                {
-                  "internalType": "bytes32",
-                  "name": "newDataHash",
-                  "type": "bytes32"
                 }
               ],
               "internalType": "struct ITransactionOrchestrator.OperationData",
@@ -142,7 +127,7 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
       "stateMutability": "nonpayable",
       "type": "function"
     },
-    {
+        {
       "inputs": [
         {
           "internalType": "uint256",
@@ -278,9 +263,9 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
           "type": "uint256"
         },
         {
-          "internalType": "uint8",
+          "internalType": "uint256",
           "name": "minimum",
-          "type": "uint8"
+          "type": "uint256"
         }
       ],
       "name": "InsufficientSplitParts",
@@ -451,7 +436,7 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
           "type": "bytes32"
         },
         {
-          "indexed": true,
+          "indexed": false,
           "internalType": "uint8",
           "name": "operation",
           "type": "uint8"
@@ -481,15 +466,9 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
           "type": "uint256[]"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "address",
-          "name": "previousOwner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "newOwner",
+          "name": "owner",
           "type": "address"
         },
         {
@@ -607,11 +586,6 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
               "type": "bytes32"
             },
             {
-              "internalType": "address",
-              "name": "originOwner",
-              "type": "address"
-            },
-            {
               "internalType": "enum IAssetRegistry.AssetStatus",
               "name": "status",
               "type": "uint8"
@@ -686,7 +660,7 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
             },
             {
@@ -726,8 +700,13 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "dataHash",
+              "type": "bytes32"
             }
           ],
           "internalType": "struct IAssetRegistry.InactivateAssetInput",
@@ -766,8 +745,13 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "dataHash",
+              "type": "bytes32"
             }
           ],
           "internalType": "struct IAssetRegistry.SplitAssetInput",
@@ -806,7 +790,7 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
             },
             {
@@ -851,13 +835,13 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
             },
             {
-              "internalType": "uint256",
-              "name": "newAmount",
-              "type": "uint256"
+              "internalType": "bytes32",
+              "name": "dataHash",
+              "type": "bytes32"
             }
           ],
           "internalType": "struct IAssetRegistry.TransformAssetInput",
@@ -891,7 +875,7 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
             }
           ],
@@ -926,12 +910,12 @@ export const ITRANSACTION_ORCHESTRATOR_ABI = [
             },
             {
               "internalType": "uint256",
-              "name": "newAmount",
+              "name": "amount",
               "type": "uint256"
             },
             {
               "internalType": "string",
-              "name": "newIdLocal",
+              "name": "idLocal",
               "type": "string"
             },
             {

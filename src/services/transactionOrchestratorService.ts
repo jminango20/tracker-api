@@ -4,8 +4,7 @@ import { AddressDiscoveryService } from './addressDiscoveryService';
 import { ProcessRegistryService } from './processRegistryService';
 import { ITRANSACTION_ORCHESTRATOR_ABI } from '../config/abis/ITransactionOrchestrator';
 import { ApiResponse } from '../types/apiTypes';
-import { TransactionRequest } from '../types/transactionOrchestratorTypes';
-import { TransactionRequestValidator } from '../validators/transactionRequestValidator';
+import { TransactionStructureValidator } from '../validators/transactionStructureValidator';
 import { ContractErrorHandler } from '../errors/contractErrorHandler';
 
 export class TransactionOrchestratorService extends BlockchainService {
@@ -64,8 +63,6 @@ export class TransactionOrchestratorService extends BlockchainService {
         try {
             console.log(`Submetendo transação: ${requestBody.processId} - action será validada dinamicamente`);
 
-            const mappedRequest = this.mapToTransactionRequest(requestBody);
-
             // 1. Obter action do processo
             const processResult = await this.processRegistryService.getProcess(
                 requestBody.channel.name,
@@ -89,56 +86,29 @@ export class TransactionOrchestratorService extends BlockchainService {
                 };
             }
 
-            console.log(`Submetendo transação: ${mappedRequest.processId} - action: ${action}`);
+            console.log(`Action do processo: ${action}`);
 
-            // 2. Validação dinâmica baseada na action do processo
-            const validation = TransactionRequestValidator.validateByAction(action, mappedRequest);
-            if (!validation.isValid) {
-                return {
-                    success: false,
-                    error: validation.error!
-                };
+            // 2. Validação estrutural
+            const structuralValidation = TransactionStructureValidator.validateStructure(action, requestBody);
+            if (!structuralValidation.isValid) {
+                console.error('Falha na validação estrutural:', structuralValidation.error);
+                return { success: false, error: structuralValidation.error! };
             }
+            
+            console.log('Validação estrutural: OK');
 
+            // 3. Preparar os contratos
             await this.ensureContractAddress();
             await this.ensureAssetRegistryAddress();
 
             const contract = this.getWriteContract(privateKey);
 
-            // 3. Preparar request para o contrato
-            const contractRequest = {
-                processId: this.stringToBytes32(mappedRequest.processId),
-                natureId: this.stringToBytes32(mappedRequest.natureId),
-                stageId: this.stringToBytes32(mappedRequest.stageId),
-                channelName: this.stringToBytes32(mappedRequest.channelName),
-                targetAssetIds: mappedRequest.targetAssetIds,
-                operationData: {
-                    //CREATE_ASSET
-                    amount: mappedRequest.operationData.amount || 0,
-                    idLocal: mappedRequest.operationData.idLocal || '',
-                    dataHash: mappedRequest.operationData.dataHash || '',
-
-                    //TRANSFER_ASSET
-                    newOwner: mappedRequest.operationData.newOwner || '0x0000000000000000000000000000000000000000',
-                    
-                    // SPLIT_ASSET
-                    amounts: mappedRequest.operationData.amounts || [],
-                    
-                    // TRANSFORM_ASSET
-                    newAssetId: mappedRequest.operationData.newAssetId ? 
-                        this.stringToBytes32(mappedRequest.operationData.newAssetId) : 
-                        '0x0000000000000000000000000000000000000000000000000000000000000000',
-
-                    // COMMON FIELDS
-                    newAmount: mappedRequest.operationData.newAmount || 0,
-                    newIdLocal: mappedRequest.operationData.newIdLocal || '',
-                    newDataHash: mappedRequest.operationData.newDataHash || '',
-                },
-            };
+            // 4. Preparar request para o contrato
+            const contractRequest = this.buildContractRequest(action, requestBody);
 
             console.log('Enviando transação para o contrato...');
 
-            // 4. Executar transação
+            // 5. Executar transação
             const txHash = await contract.write.submitTransaction([contractRequest]) as any;
             
             console.log(`Transação enviada: ${txHash}`);
@@ -180,39 +150,6 @@ export class TransactionOrchestratorService extends BlockchainService {
 
     public clearAddressCache(): void {
         this.cachedContractAddress = null;
-    }
-
-    private mapToTransactionRequest(requestBody: any): TransactionRequest {
-        const dataHash = this.generateDataHash(requestBody.data);
-        const newDataHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
-        
-        return {
-            processId: requestBody.process?.processId?.trim() || '',
-            natureId: requestBody.process?.natureId?.trim() || '',
-            stageId: requestBody.process?.stageId?.trim() || '',
-            channelName: requestBody.channel?.name?.trim() || '',
-            targetAssetIds: requestBody.asset?.assetIds || [], 
-            operationData: {
-                // CREATE_ASSET
-                amount: requestBody.asset?.amount || 0,
-                idLocal: requestBody.asset?.idLocal?.trim() || '',
-                dataHash: dataHash,
-                
-                // TRANSFER_ASSET  
-                newOwner: requestBody.owner?.ownerAddress?.trim() || '',
-                
-                // SPLIT_ASSET
-                amounts: requestBody.asset?.amounts || [],
-                
-                // TRANSFORM_ASSET
-                newAssetId: requestBody.transform?.newAssetId?.trim() || '',
-                
-                // Common fields
-                newAmount: requestBody.asset?.newAmount || 0,
-                newIdLocal: requestBody.asset?.newIdLocal?.trim() || '',
-                newDataHash: newDataHash
-            }
-        };
     }
 
     private generateDataHash(data: any[]): string {
@@ -271,6 +208,59 @@ export class TransactionOrchestratorService extends BlockchainService {
     
         return { created: [], modified: [] };
     }
+
+    private buildContractRequest(action: string, requestBody: any): any {
+        const dataHash = this.generateDataHash(requestBody.data);
+        const emptyBytes32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        const emptyAddress = '0x0000000000000000000000000000000000000000';
+
+        // Base comum a todas as actions
+        const baseRequest = {
+            processId: this.stringToBytes32(requestBody.process.processId.trim()),
+            natureId: this.stringToBytes32(requestBody.process.natureId.trim()),
+            stageId: this.stringToBytes32(requestBody.process.stageId.trim()),
+            channelName: this.stringToBytes32(requestBody.channel.name.trim()),
+        };
+
+        switch (action) {
+            case 'CREATE_ASSET':
+                return {
+                    ...baseRequest,
+                    targetAssetIds: [], // CREATE não tem targetAssetIds
+                    operationData: {
+                        amount: requestBody.asset.amount,
+                        idLocal: requestBody.asset.idLocal?.trim() || '',
+                        dataHash: dataHash,
+                        // Outros campos vazios/default conforme contrato espera
+                        newOwner: emptyAddress,
+                        amounts: [],
+                        newAssetId: emptyBytes32,
+                        newAmount: 0,
+                        newIdLocal: '',
+                        newDataHash: emptyBytes32,
+                    }
+                };
+
+            case 'UPDATE_ASSET':
+                return {
+                    ...baseRequest,
+                    targetAssetIds: requestBody.asset.assetIds,
+                    operationData: {
+                        amount: 0,
+                        idLocal: '',
+                        dataHash: dataHash,
+                        newOwner: emptyAddress,
+                        amounts: [],
+                        newAssetId: emptyBytes32,
+                        newAmount: requestBody.asset.newAmount || 0,
+                        newIdLocal: requestBody.asset.newIdLocal?.trim() || '',
+                        newDataHash: emptyBytes32,
+                    }
+                };
+            default:
+                throw new Error(`Action '${action}' não suportada`);
+        }
+}
 
     
 }

@@ -63,9 +63,9 @@ export class TransactionRequestValidator {
         }
         
         // Pelo menos um campo deve estar presente para update
-        const hasNewIdLocal = request.operationData.newIdLocal && request.operationData.newIdLocal.trim().length > 0;
-        const hasNewAmount = request.operationData.newAmount && request.operationData.newAmount > 0;
-        const hasNewDataHash = request.operationData.newDataHash && request.operationData.newDataHash.trim().length > 0;
+        const hasNewIdLocal = request.operationData.idLocal && request.operationData.idLocal.trim().length > 0;
+        const hasNewAmount = request.operationData.amount && request.operationData.amount > 0;
+        const hasNewDataHash = request.operationData.dataHash && request.operationData.dataHash.trim().length > 0;
         
         if (!hasNewIdLocal && !hasNewAmount && !hasNewDataHash) {
             return { isValid: false, error: 'UPDATE_ASSET deve ter pelo menos newIdLocal, newAmount ou newDataHash' };
@@ -88,7 +88,7 @@ export class TransactionRequestValidator {
             return { isValid: false, error: 'newOwner deve ser um endereço Ethereum válido' };
         }
         
-        if (!request.operationData.newIdLocal) {
+        if (!request.operationData.idLocal) {
             return { isValid: false, error: 'Campo newIdLocal é obrigatório para TRANSFER_ASSET' };
         }
         
@@ -110,7 +110,7 @@ export class TransactionRequestValidator {
         }
                 
         // newAmount é opcional - se não fornecido ou 0, herda do original
-        if (request.operationData.newAmount && request.operationData.newAmount < 0) {
+        if (request.operationData.amount && request.operationData.amount < 0) {
             return { isValid: false, error: 'Campo newAmount deve ser maior ou igual a 0' };
         }
         
@@ -140,7 +140,7 @@ export class TransactionRequestValidator {
             return { isValid: false, error: 'GROUP_ASSET deve ter pelo menos 2 targetAssetIds' };
         }
         
-        if (!request.operationData.newIdLocal) {
+        if (!request.operationData.idLocal) {
             return { isValid: false, error: 'Campo newIdLocal é obrigatório para GROUP_ASSET' };
         }
         

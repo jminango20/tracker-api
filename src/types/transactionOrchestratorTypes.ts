@@ -21,9 +21,4 @@ export interface OperationData {
     
     // TRANSFORM_ASSET
     newAssetId?: string;
-    
-    // Common
-    newAmount?: number;
-    newIdLocal?: string;
-    newDataHash?: string;
 }
