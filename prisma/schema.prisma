@@ -127,3 +127,45 @@ model BlockTracker {
   
   @@map("block_tracker")
 }
+
+// Schemas
+model SchemaData {
+  id              Int       @id @default(autoincrement())
+  
+  // ========== IDENTIFICAÇÃO (String original + Hash) ==========
+  schemaId        String    @map("schema_id")           
+  schemaIdHash    String    @map("schema_id_hash")      // bytes32
+  channelName     String    @map("channel_name")        
+  channelNameHash String    @map("channel_name_hash")   // bytes32
+  version         Int                                   
+  name            String                                
+
+  // ========== DADOS DO SCHEMA ==========
+  dataHash        String    @map("data_hash")           // Hash do schema (0x...)
+  fullSchema      Json      @map("full_schema")         // { properties, required }
+  description     String?                               // Descrição (opcional)
+  
+  // ========== BLOCKCHAIN METADATA (do evento) ==========
+  owner           String                                
+  blockTimestamp  BigInt    @map("block_timestamp")     // Timestamp blockchain
+  
+  // ========== TRANSAÇÃO ==========
+  transactionHash String    @map("transaction_hash")    
+  blockNumber     BigInt    @map("block_number")        
+  logIndex        Int       @map("log_index")           
+  
+  // ========== STATUS & CONTROLE ==========
+  status          String    @default("ACTIVE")          // ACTIVE, DEPRECATED, INACTIVE
+  
+  // ========== TIMESTAMPS BACKEND ==========
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  // ========== ÍNDICES & CONSTRAINTS ==========
+  @@unique([schemaId, channelName, version], map: "unique_schema_version")
+  @@unique([transactionHash, logIndex], map: "unique_schema_tx_log")
+  @@index([schemaId, channelName])
+  @@index([channelName])
+  @@index([status])
+  @@map("schema_data")
+}

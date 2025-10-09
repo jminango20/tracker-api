@@ -15,6 +15,9 @@ import { checkConnection } from './config/blockchain';
 import { IndexerService } from './services/events/indexerService'; // NOVO
 import { AddressDiscoveryService } from './services/addressDiscoveryService'; // SEU SERVIÇO
 
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
 const app = express();
 

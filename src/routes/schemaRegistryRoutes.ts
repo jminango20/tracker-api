@@ -55,15 +55,6 @@ router.post('/status', async (req, res) => {
 });
 
 /**
- * @route POST /api/schemas/version
- * @desc Obter informações do schema por versão
- * @body { channelName: string, schemaId: string, version: number }
- */
-router.post('/version', async (req, res) => {
-    await schemaRegistryController.getSchemaByVersion(req, res);
-});
-
-/**
  * @route POST /api/schemas/info
  * @desc Obter informações do schema
  * @body { channelName: string, schemaId: string }
@@ -73,12 +64,33 @@ router.post('/info', async (req, res) => {
 });
 
 /**
- * @route POST /api/schemas/active
- * @desc Obter schema ativo completo
- * @body { channelName: string, schemaId: string }
+ * @route POST /api/schemas/list
+ * @desc Listar schemas
+ * @body { channelName: string, schemaId: string, status: string, page: number, limit: number }
  */
-router.post('/active', async (req, res) => {
-    await schemaRegistryController.getActiveSchema(req, res);
+router.post('/list', async (req, res) => {
+  await schemaRegistryController.listSchemas(req, res);
 });
+
+/**
+ * @route POST /api/schemas/getOnchain
+ * @desc Obter schema da blockchain
+ * @body { channelName: string, schemaId: string, version: number }
+ */
+router.post('/getOnchain', async (req, res) => {
+  await schemaRegistryController.getSchemaOnChain(req, res);
+});
+
+/**
+ * @route POST /api/schemas/get
+ * @desc Obter schema
+ * @body { channelName: string, schemaId: string, version: number, source: string, validateIntegrity: boolean }
+ * Query params: ?source=database|blockchain&validateIntegrity=true
+ */
+router.post('/get', async (req, res) => {
+  await schemaRegistryController.getSchema(req, res);
+});
+
+
 
 export default router;
